@@ -20,4 +20,8 @@ public class MenuItemService {
     public MenuItem saveMenuItem(MenuItem menuItem) {
         return menuItemRepository.save(menuItem);
     }
+
+    public void deleteMenuItem(Long id) {
+        menuItemRepository.deleteById(id);
+    }
 }

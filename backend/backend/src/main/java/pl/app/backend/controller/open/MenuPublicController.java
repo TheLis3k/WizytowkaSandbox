@@ -1,5 +1,6 @@
 package pl.app.backend.controller.open;
 
+import org.springframework.http.ResponseEntity;
 import pl.app.backend.entity.MenuItem;
 import pl.app.backend.service.MenuItemService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,11 @@ public class MenuPublicController {
     private final MenuItemService menuItemService;
 
     @GetMapping
-    public List<MenuItem> getMenu() {
-        return menuItemService.getAllMenuItems();
+    public ResponseEntity<List<MenuItem>> getMenu() {
+        List<MenuItem> items = menuItemService.getAllMenuItems();
+        if (items.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204
+        }
+        return ResponseEntity.ok(items);
     }
 }
