@@ -1,4 +1,4 @@
-package pl.app.backend.config;
+package pl.app.backend.security;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

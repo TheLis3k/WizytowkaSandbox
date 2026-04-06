@@ -1,4 +1,4 @@
-package pl.app.backend.config;
+package pl.app.backend.filter;
 
 import io.github.bucket4j.Bandwidth;
 import org.springframework.context.annotation.Configuration;

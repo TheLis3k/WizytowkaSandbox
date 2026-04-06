@@ -1,4 +1,4 @@
-package pl.app.backend.config;
+package pl.app.backend.bootstrap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
