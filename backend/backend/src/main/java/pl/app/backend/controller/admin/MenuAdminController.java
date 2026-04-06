@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/menu")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class MenuAdminController {
 
     private final MenuItemService menuItemService;

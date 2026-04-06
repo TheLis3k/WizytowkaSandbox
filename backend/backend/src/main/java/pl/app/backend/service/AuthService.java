@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.app.backend.dto.AuthResponse;
@@ -12,7 +13,7 @@ import pl.app.backend.dto.LoginRequest;
 import pl.app.backend.entity.RefreshToken;
 import pl.app.backend.entity.User;
 import pl.app.backend.repository.RefreshTokenRepository;
-import pl.app.backend.repository.UserRepository;
+import pl.app.backend.security.UserPrincipal;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -25,7 +26,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -35,15 +35,16 @@ public class AuthService {
 
     @Transactional
     public AuthResponse authenticate(LoginRequest request) {
-        authenticationManager.authenticate(
+        Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+        User user = principal.getUser();
 
         refreshTokenRepository.deleteByUser(user);
 
-        String accessToken = jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(principal);
         String plainRefreshToken = createAndSaveRefreshToken(user);
 
         return AuthResponse.builder()
@@ -61,29 +62,30 @@ public class AuthService {
 
         if (refreshTokenEntity.isRevoked() || refreshTokenEntity.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(refreshTokenEntity);
-            throw new JwtException("Sesja wygasła lub została wylogowana (Blacklista)");
+            throw new JwtException("Sesja wygasła lub została wylogowana");
         }
 
         User user = refreshTokenEntity.getUser();
-        String newAccessToken = jwtService.generateToken(user);
+
+        // Refresh token rotation: stary token usuwamy, wystawiamy nowy
+        refreshTokenRepository.delete(refreshTokenEntity);
+        String newPlainRefreshToken = createAndSaveRefreshToken(user);
+        String newAccessToken = jwtService.generateToken(new UserPrincipal(user));
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(plainRefreshToken)
+                .refreshToken(newPlainRefreshToken)
                 .build();
     }
 
     @Transactional
     public void logout(String plainRefreshToken) {
         String hashedToken = hashToken(plainRefreshToken);
-        refreshTokenRepository.findByTokenHash(hashedToken).ifPresent(token -> {
-            token.setRevoked(true);
-            refreshTokenRepository.save(token);
-        });
+        refreshTokenRepository.findByTokenHash(hashedToken).ifPresent(refreshTokenRepository::delete);
     }
 
     private String createAndSaveRefreshToken(User user) {
-        String plainToken = UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString();
+        String plainToken = UUID.randomUUID() + "-" + UUID.randomUUID();
         String hashedToken = hashToken(plainToken);
 
         RefreshToken refreshToken = RefreshToken.builder()

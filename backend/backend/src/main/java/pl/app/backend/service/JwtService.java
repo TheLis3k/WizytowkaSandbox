@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
 
+    private static final String AUDIENCE = "admin-panel";
+
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
@@ -36,27 +38,20 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
-        if (secretKey == null || secretKey.length() < 43) {
-            throw new IllegalStateException("JWT secret key must be at least 256 bits (32 bytes)");
-        }
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT secret key must be at least 256 bits (32 bytes, ~44 Base64 chars)");
+        }
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
         log.info("JWT Service initialized successfully with secure key.");
     }
 
     public String extractUsername(String token) {
-        try {
-            return extractClaim(token, Claims::getSubject);
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error("Failed to extract username from token", e);
-            return null;
-        }
+        return extractClaim(token, Claims::getSubject);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        if (claims == null) return null;
-        return claimsResolver.apply(claims);
+        return claimsResolver.apply(extractAllClaims(token));
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -72,7 +67,7 @@ public class JwtService {
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuer(appName)
-                .audience().add("admin-panel").and()
+                .audience().add(AUDIENCE).and()
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(signingKey)
@@ -82,34 +77,30 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
-            boolean isValid = username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            boolean isValid = username.equals(userDetails.getUsername()) && !isTokenExpired(token);
             log.debug("Token validation for user {}: {}", username, isValid);
             return isValid;
-        } catch (Exception e) {
-            log.warn("Token validation failed", e);
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Token validation failed: {}", e.getMessage());
             return false;
         }
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiration = extractExpiration(token);
-        return expiration != null && expiration.before(new Date());
+        return extractExpiration(token).before(new Date());
     }
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    // Throws JwtException on invalid token — callers are responsible for handling it
     private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(signingKey)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-        } catch (JwtException e) {
-            log.error("Invalid JWT signature/claims: {}", e.getMessage());
-            return null;
-        }
+        return Jwts.parser()
+                .verifyWith(signingKey)
+                .requireAudience(AUDIENCE)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
