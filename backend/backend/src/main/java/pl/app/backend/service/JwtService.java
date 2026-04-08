@@ -23,7 +23,8 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
 
-    private static final String AUDIENCE = "admin-panel";
+    @Value("${security.jwt.audience}")
+    private String audience;
 
     @Value("${security.jwt.secret-key}")
     private String secretKey;
@@ -67,7 +68,7 @@ public class JwtService {
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuer(appName)
-                .audience().add(AUDIENCE).and()
+                .audience().add(audience).and()
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(signingKey)
@@ -98,7 +99,7 @@ public class JwtService {
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)
-                .requireAudience(AUDIENCE)
+                .requireAudience(audience)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
