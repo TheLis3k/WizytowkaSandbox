@@ -1,5 +1,6 @@
 package pl.app.backend.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.FilterChain;
@@ -11,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import pl.app.backend.dto.ErrorResponse;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -21,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitingFilter extends OncePerRequestFilter {
 
     private final RateLimitConfig rateLimitConfig;
+    private final ObjectMapper objectMapper;
     private final ConcurrentHashMap<String, Bucket> bucketCache = new ConcurrentHashMap<>();
 
     @Override
@@ -70,13 +74,16 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private void sendTooManyRequestsResponse(HttpServletResponse response, long retryAfterSeconds) throws IOException {
+        ErrorResponse body = ErrorResponse.builder()
+                .status(429)
+                .error("Too Many Requests")
+                .message(String.format("Przekroczono limit zapytań. Spróbuj za %d sekund.", retryAfterSeconds))
+                .timestamp(LocalDateTime.now())
+                .build();
         response.setStatus(429);
         response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
         response.setHeader("X-RateLimit-Remaining", "0");
-        response.getWriter().write(String.format(
-                "{\"status\":429,\"error\":\"Too Many Requests\",\"message\":\"Przekroczono limit zapytań. Spróbuj za %d sekund.\"}",
-                retryAfterSeconds
-        ));
+        objectMapper.writeValue(response.getWriter(), body);
     }
 }
