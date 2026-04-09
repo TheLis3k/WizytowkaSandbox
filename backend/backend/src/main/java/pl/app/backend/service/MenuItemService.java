@@ -2,10 +2,12 @@ package pl.app.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.app.backend.dto.MenuItemRequest;
 import pl.app.backend.dto.MenuItemResponse;
 import pl.app.backend.entity.MenuItem;
 import pl.app.backend.repository.MenuItemRepository;
+import pl.app.backend.security.InputSanitizer;
 
 import java.util.List;
 
@@ -14,6 +16,7 @@ import java.util.List;
 public class MenuItemService {
 
     private final MenuItemRepository menuItemRepository;
+    private final InputSanitizer inputSanitizer;
 
     public List<MenuItemResponse> getAllMenuItems() {
         return menuItemRepository.findAll().stream()
@@ -21,29 +24,30 @@ public class MenuItemService {
                 .toList();
     }
 
+    @Transactional
     public MenuItemResponse saveMenuItem(MenuItemRequest request) {
         MenuItem entity = MenuItem.builder()
-                .name(request.getName())
-                .description(request.getDescription())
+                .name(inputSanitizer.sanitize(request.getName()))
+                .description(inputSanitizer.sanitize(request.getDescription()))
                 .price(request.getPrice())
-                .imageUrl(request.getImageUrl())
-                .category(request.getCategory())
+                .imageUrl(inputSanitizer.sanitize(request.getImageUrl()))
+                .category(inputSanitizer.sanitize(request.getCategory()))
                 .build();
         return toResponse(menuItemRepository.save(entity));
     }
 
+    @Transactional
     public MenuItemResponse updateMenuItem(Long id, MenuItemRequest request) {
-        MenuItem existingItem = menuItemRepository.findById(id)
+        MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Danie o podanym ID (" + id + ") nie istnieje."));
 
-        existingItem.setName(request.getName());
-        existingItem.setDescription(request.getDescription());
-        existingItem.setPrice(request.getPrice());
-        existingItem.setImageUrl(request.getImageUrl());
-        existingItem.setCategory(request.getCategory());
+        item.setName(inputSanitizer.sanitize(request.getName()));
+        item.setDescription(inputSanitizer.sanitize(request.getDescription()));
+        item.setPrice(request.getPrice());
+        item.setImageUrl(inputSanitizer.sanitize(request.getImageUrl()));
+        item.setCategory(inputSanitizer.sanitize(request.getCategory()));
 
-        MenuItem updatedItem = menuItemRepository.save(existingItem);
-        return toResponse(updatedItem);
+        return toResponse(menuItemRepository.save(item));
     }
 
     public void deleteMenuItem(Long id) {
