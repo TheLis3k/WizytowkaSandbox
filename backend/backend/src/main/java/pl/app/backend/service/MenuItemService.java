@@ -32,6 +32,20 @@ public class MenuItemService {
         return toResponse(menuItemRepository.save(entity));
     }
 
+    public MenuItemResponse updateMenuItem(Long id, MenuItemRequest request) {
+        MenuItem existingItem = menuItemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Danie o podanym ID (" + id + ") nie istnieje."));
+
+        existingItem.setName(request.getName());
+        existingItem.setDescription(request.getDescription());
+        existingItem.setPrice(request.getPrice());
+        existingItem.setImageUrl(request.getImageUrl());
+        existingItem.setCategory(request.getCategory());
+
+        MenuItem updatedItem = menuItemRepository.save(existingItem);
+        return toResponse(updatedItem);
+    }
+
     public void deleteMenuItem(Long id) {
         menuItemRepository.deleteById(id);
     }

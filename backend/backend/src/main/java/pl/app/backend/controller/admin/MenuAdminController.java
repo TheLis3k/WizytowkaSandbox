@@ -26,4 +26,11 @@ public class MenuAdminController {
         menuItemService.deleteMenuItem(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MenuItemResponse> updateMenuItem(
+            @PathVariable Long id,
+            @Valid @RequestBody MenuItemRequest request) {
+        return ResponseEntity.ok(menuItemService.updateMenuItem(id, request));
+    }
 }
