@@ -36,6 +36,7 @@ public class MenuItemService {
         return toResponse(menuItemRepository.save(entity));
     }
 
+    // TODO: Not existing menu item returns 500
     @Transactional
     public MenuItemResponse updateMenuItem(Long id, MenuItemRequest request) {
         MenuItem item = menuItemRepository.findById(id)

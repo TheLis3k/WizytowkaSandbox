@@ -16,9 +16,18 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isActive = false;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean emailVerified = false;
 }

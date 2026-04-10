@@ -35,13 +35,15 @@ public class DatabaseSeeder {
             User admin = User.builder()
                     .email(adminEmail)
                     .password(passwordEncoder.encode(adminPassword))
-                    .role(Role.ADMIN)
+                    .role(Role.MASTER_USER)
+                    .isActive(true)
+                    .emailVerified(true)
                     .build();
 
             userRepository.save(admin);
-            log.info("Utworzono początkowe konto administratora: {}", adminEmail);
+            log.info("Utworzono początkowe konto administratora (MASTER_USER): {}", adminEmail);
         } else {
-            log.info("Konto administratora już istnieje w bazie.");
+            log.info("Konto głównego administratora już istnieje w bazie.");
         }
     }
 }

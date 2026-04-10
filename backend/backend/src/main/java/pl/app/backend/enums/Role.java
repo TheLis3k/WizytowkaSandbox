@@ -1,5 +1,6 @@
 package pl.app.backend.enums;
 
 public enum Role {
-    ADMIN
+    MASTER_USER,
+    SUPER_USER
 }

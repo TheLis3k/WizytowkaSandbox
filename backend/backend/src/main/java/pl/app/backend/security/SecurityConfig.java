@@ -40,7 +40,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/users/**").hasRole("MASTER_USER")
+                        .requestMatchers("/api/admin/menu/**").hasAnyRole("MASTER_USER", "SUPER_USER")
+                        .requestMatchers("/api/profile/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider)
