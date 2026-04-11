@@ -46,7 +46,7 @@ public class UserProfileController {
         );
 
         return ResponseEntity.ok(Map.of(
-                "message", "Wysłano link potwierdzający na nowy adres e-mail."
+                "message", "Jeśli podany adres e-mail jest dostępny, wysłano na niego link potwierdzający."
         ));
     }
 }

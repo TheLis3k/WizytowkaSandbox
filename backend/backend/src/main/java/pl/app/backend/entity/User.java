@@ -30,4 +30,15 @@ public class User {
     @Builder.Default
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean emailVerified = false;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isDeleted = false;
+
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int failedLoginAttempts = 0;
+
+    @Column(nullable = true)
+    private java.time.Instant lockoutTime;
 }

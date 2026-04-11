@@ -55,7 +55,8 @@ public class UserProfileServiceImpl implements IUserProfileService {
                 .orElseThrow(() -> new IllegalArgumentException("Użytkownik nie istnieje."));
 
         if (userRepository.findByEmail(newEmail).isPresent()) {
-            throw new IllegalArgumentException("Podany adres e-mail jest już zajęty.");
+            log.warn("Użytkownik ID: {} próbował zmienić e-mail na już zajęty: {}", userId, newEmail);
+            return;
         }
 
         tokenRepository.deleteByUserIdAndType(user.getId(), VerificationTokenType.EMAIL_CHANGE);

@@ -33,7 +33,7 @@ public class UserManagementServiceImpl implements IUserManagementService {
 
     @Override
     public List<UserResponse> getAllUsers(int page, int size) {
-        return userRepository.findAll(PageRequest.of(page, size))
+        return userRepository.findAllByIsDeletedFalse(PageRequest.of(page, size))
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -43,7 +43,8 @@ public class UserManagementServiceImpl implements IUserManagementService {
     @Transactional
     public void inviteSuperUser(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Użytkownik o tym adresie e-mail już istnieje.");
+            log.warn("Próba wysłania zaproszenia na adres e-mail, który jest już w bazie: {}", email);
+            return;
         }
 
         User newUser = User.builder()
@@ -82,10 +83,17 @@ public class UserManagementServiceImpl implements IUserManagementService {
             throw new IllegalStateException("Nie można usunąć konta głównego administratora (MASTER_USER).");
         }
 
-        verificationTokenRepository.deleteByUserIdAndType(user.getId(), VerificationTokenType.INVITATION);
-        userRepository.delete(user);
+        if (user.isDeleted()) {
+            throw new IllegalArgumentException("Użytkownik został już usunięty.");
+        }
 
-        log.info("Usunięto konto użytkownika ID: {}", id);
+        verificationTokenRepository.deleteByUserIdAndType(user.getId(), VerificationTokenType.INVITATION);
+
+        user.setDeleted(true);
+        user.setActive(false);
+        userRepository.save(user);
+
+        log.info("Konto użytkownika ID: {} zostało miękko usunięte (soft delete).", id);
     }
 
     private UserResponse mapToResponse(User user) {

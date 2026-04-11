@@ -23,18 +23,21 @@ public class UserPrincipal implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 
-    @Override
-    public String getPassword() {
+    @Override public String getPassword() {
         return user.getPassword();
     }
-
-    @Override
-    public String getUsername() {
+    @Override public String getUsername() {
         return user.getEmail();
     }
 
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override public boolean isAccountNonLocked() {
+        if (user.getLockoutTime() == null) {
+            return true;
+        }
+        return user.getLockoutTime().isBefore(java.time.Instant.now());
+    }
+    @Override public boolean isEnabled() {
+        return !user.isDeleted();
+    }
 }

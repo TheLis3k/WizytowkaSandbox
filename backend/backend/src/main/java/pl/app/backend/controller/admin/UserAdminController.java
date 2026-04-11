@@ -28,7 +28,7 @@ public class UserAdminController {
     public ResponseEntity<?> inviteUser(@Valid @RequestBody InviteUserRequest request) {
         userManagementService.inviteSuperUser(request.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                "message", "Zaproszenie zostało wysłane na adres: " + request.getEmail()
+                "message", "Prośba została przetworzona. Jeśli użytkownik nie istniał, wysłano zaproszenie na adres: " + request.getEmail()
         ));
     }
 
