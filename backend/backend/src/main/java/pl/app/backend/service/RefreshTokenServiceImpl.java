@@ -9,13 +9,14 @@ import pl.app.backend.entity.RefreshToken;
 import pl.app.backend.entity.User;
 import pl.app.backend.repository.RefreshTokenRepository;
 import pl.app.backend.security.TokenHasher;
+import pl.app.backend.service.interfaces.IRefreshTokenService;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class RefreshTokenService {
+public class RefreshTokenServiceImpl implements IRefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenHasher tokenHasher;
@@ -23,8 +24,7 @@ public class RefreshTokenService {
     @Value("${security.jwt.refresh-expiration-time}")
     private long refreshTokenExpirationMs;
 
-    public record RotationResult(User user, String newToken) {}
-
+    @Override
     @Transactional
     public String createFor(User user) {
         String plainToken = UUID.randomUUID() + "-" + UUID.randomUUID();
@@ -38,6 +38,7 @@ public class RefreshTokenService {
         return plainToken;
     }
 
+    @Override
     @Transactional
     public RotationResult rotate(String plainToken) {
         RefreshToken entity = findValid(plainToken);
@@ -46,12 +47,14 @@ public class RefreshTokenService {
         return new RotationResult(user, createFor(user));
     }
 
+    @Override
     @Transactional
     public void delete(String plainToken) {
         refreshTokenRepository.findByTokenHash(tokenHasher.hash(plainToken))
                 .ifPresent(refreshTokenRepository::delete);
     }
 
+    @Override
     @Transactional
     public void deleteAllForUser(User user) {
         refreshTokenRepository.deleteByUser(user);

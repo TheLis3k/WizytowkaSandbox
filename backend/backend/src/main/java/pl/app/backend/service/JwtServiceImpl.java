@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import pl.app.backend.service.interfaces.IJwtService;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class JwtService {
+public class JwtServiceImpl implements IJwtService {
 
     @Value("${security.jwt.audience}")
     private String audience;
@@ -47,14 +48,17 @@ public class JwtService {
         log.info("JWT Service initialized successfully with secure key.");
     }
 
+    @Override
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    @Override
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         return claimsResolver.apply(extractAllClaims(token));
     }
 
+    @Override
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("authorities", userDetails.getAuthorities().stream()
@@ -63,6 +67,7 @@ public class JwtService {
         return generateToken(claims, userDetails);
     }
 
+    @Override
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .claims(extraClaims)
@@ -75,6 +80,7 @@ public class JwtService {
                 .compact();
     }
 
+    @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
@@ -95,7 +101,6 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // Throws JwtException on invalid token — callers are responsible for handling it
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)

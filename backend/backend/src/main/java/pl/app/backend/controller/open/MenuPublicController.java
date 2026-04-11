@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.app.backend.dto.MenuItemResponse;
-import pl.app.backend.service.MenuItemService;
+import pl.app.backend.service.interfaces.IMenuItemService;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuPublicController {
 
-    private final MenuItemService menuItemService;
+    private final IMenuItemService menuItemService;
 
     @GetMapping
     public ResponseEntity<List<MenuItemResponse>> getMenu() {

@@ -19,7 +19,10 @@ import pl.app.backend.repository.UserRepository;
 import pl.app.backend.repository.VerificationTokenRepository;
 import pl.app.backend.security.TokenHasher;
 import pl.app.backend.security.UserPrincipal;
+import pl.app.backend.service.interfaces.IAuthService;
 import pl.app.backend.service.interfaces.IEmailService;
+import pl.app.backend.service.interfaces.IJwtService;
+import pl.app.backend.service.interfaces.IRefreshTokenService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,11 +31,11 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl implements IAuthService {
 
-    private final JwtService jwtService;
+    private final IJwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final RefreshTokenService refreshTokenService;
+    private final IRefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final TokenHasher tokenHasher;
@@ -44,6 +47,7 @@ public class AuthService {
     @Value("${security.auth.lock-time-minutes}")
     private int lockTimeDurationMinutes;
 
+    @Override
     @Transactional
     public AuthResponse authenticate(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -90,6 +94,7 @@ public class AuthService {
         }
     }
 
+    @Override
     @Transactional
     public AuthResponse refreshToken(String plainRefreshToken) {
         var result = refreshTokenService.rotate(plainRefreshToken);
@@ -100,11 +105,13 @@ public class AuthService {
                 .build();
     }
 
+    @Override
     @Transactional
     public void logout(String plainRefreshToken) {
         refreshTokenService.delete(plainRefreshToken);
     }
 
+    @Override
     @Transactional
     public void requestPasswordReset(String email) {
         userRepository.findByEmailAndIsDeletedFalse(email).ifPresent(user -> {
@@ -126,6 +133,7 @@ public class AuthService {
         });
     }
 
+    @Override
     @Transactional
     public void resetPassword(String plainToken, String newPassword) {
         String hashedToken = tokenHasher.hash(plainToken);

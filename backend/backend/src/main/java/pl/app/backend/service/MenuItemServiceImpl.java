@@ -10,22 +10,25 @@ import pl.app.backend.dto.MenuItemResponse;
 import pl.app.backend.entity.MenuItem;
 import pl.app.backend.repository.MenuItemRepository;
 import pl.app.backend.security.InputSanitizer;
+import pl.app.backend.service.interfaces.IMenuItemService;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MenuItemService {
+public class MenuItemServiceImpl implements IMenuItemService {
 
     private final MenuItemRepository menuItemRepository;
     private final InputSanitizer inputSanitizer;
 
+    @Override
     public List<MenuItemResponse> getAllMenuItems() {
         return menuItemRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
+    @Override
     @Transactional
     public MenuItemResponse saveMenuItem(MenuItemRequest request) {
         MenuItem entity = MenuItem.builder()
@@ -38,6 +41,7 @@ public class MenuItemService {
         return toResponse(menuItemRepository.save(entity));
     }
 
+    @Override
     @Transactional
     public MenuItemResponse updateMenuItem(Long id, MenuItemRequest request) {
         MenuItem item = menuItemRepository.findById(id)
@@ -52,6 +56,8 @@ public class MenuItemService {
         return toResponse(menuItemRepository.save(item));
     }
 
+    @Override
+    @Transactional
     public void deleteMenuItem(Long id) {
         menuItemRepository.deleteById(id);
     }
