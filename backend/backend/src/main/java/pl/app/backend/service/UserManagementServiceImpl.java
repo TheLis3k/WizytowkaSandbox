@@ -41,6 +41,23 @@ public class UserManagementServiceImpl implements IUserManagementService {
 
     @Override
     @Transactional
+    public void generateAndSendInvitation(User user) {
+        String plainToken = UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString();
+        String hashedToken = tokenHasher.hash(plainToken);
+
+        VerificationToken verificationToken = VerificationToken.builder()
+                .user(user)
+                .tokenHash(hashedToken)
+                .type(VerificationTokenType.INVITATION)
+                .expiryDate(Instant.now().plus(24, ChronoUnit.HOURS))
+                .build();
+
+        verificationTokenRepository.save(verificationToken);
+        emailService.sendInvitationEmail(user.getEmail(), plainToken);
+    }
+
+    @Override
+    @Transactional
     public void inviteSuperUser(String email) {
         if (userRepository.findByEmail(email).isPresent()) {
             log.warn("Próba wysłania zaproszenia na adres e-mail, który jest już w bazie: {}", email);
@@ -56,21 +73,9 @@ public class UserManagementServiceImpl implements IUserManagementService {
 
         User savedUser = userRepository.save(newUser);
 
-        String plainToken = UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString();
-        String hashedToken = tokenHasher.hash(plainToken);
+        generateAndSendInvitation(savedUser);
 
-        VerificationToken verificationToken = VerificationToken.builder()
-                .user(savedUser)
-                .tokenHash(hashedToken)
-                .type(VerificationTokenType.INVITATION)
-                .expiryDate(Instant.now().plus(24, ChronoUnit.HOURS))
-                .build();
-
-        verificationTokenRepository.save(verificationToken);
-
-        emailService.sendInvitationEmail(email, plainToken);
         log.info("Wysłano zaproszenie (SUPER_USER) na adres: {}", email);
-        System.out.println("===== TEST TOKEN =====: " + plainToken);
     }
 
     @Override
