@@ -1,0 +1,1 @@
+# For API calls, use bruno and repo: https://github.com/TheLis3k/WizytowkaSandboxBruno
