@@ -1,0 +1,130 @@
+================================================================================
+STRUKTURA APLIKACJI FRONT-ENDOWEJ (WizytowkaSandbox)
+================================================================================
+
+1. STOS TECHNOLOGICZNY (TECH STACK)
+--------------------------------------------------------------------------------
+- Środowisko/Budowanie: React 18+ z Vite
+- Język: TypeScript (TS) dla pełnego typowania DTO z backendu
+- Routing: React Router v6 (z podziałem na Layouty i Protected Routes)
+- Komunikacja HTTP: Axios (z interceptorami do obsługi nagłówków Authorization i odświeżania tokenów)
+- Zarządzanie stanem zapytań (Cache): TanStack Query (React Query)
+- Formularze i Walidacja: React Hook Form + Zod (walidacja regex dla haseł i e-maili)
+- Stylowanie: Tailwind CSS
+- Komponenty UI: shadcn/ui (Radix UI) - dla modali, tabel, przycisków
+- Stan globalny (Opcjonalnie dla sesji/użytkownika): Zustand lub React Context API
+
+2. GŁÓWNY ROUTING (Podział na Layouty)
+--------------------------------------------------------------------------------
+Aplikacja jest podzielona na 3 główne ścieżki (Layouty):
+- /           -> PublicLayout (Górne menu nawigacyjne, otwarta strefa)
+- /auth       -> AuthLayout (Czysty ekran z wyśrodkowanymi formularzami)
+- /admin      -> AdminLayout (Boczne menu po lewej, strefa chroniona tokenem JWT)
+
+3. WIDOK PUBLICZNY (PublicLayout)
+--------------------------------------------------------------------------------
+[ / ] lub [ /menu ]
+  Komponent: PublicMenu
+  Działanie: Wyświetla listę dań z podziałem na kategorie (dane z serwera).
+  API Backend:
+    - GET /api/public/menu (Pobiera listę MenuItemResponse)
+
+[ /rezerwacje ]
+  Komponent: PublicReservations
+  Działanie: Formularz wyboru daty, godziny, liczby osób.
+  API Backend: BRAK (Wymaga dopisania encji Reservation i endpointu POST /api/public/reservations).
+
+[ /formularz ] (lub /kontakt)
+  Komponent: PublicContactForm
+  Działanie: Formularz kontaktowy z walidacją Zod.
+  API Backend: BRAK (Wymaga dopisania encji Message i endpointu POST /api/public/contact).
+
+4. WIDOK AUTORYZACJI (AuthLayout)
+--------------------------------------------------------------------------------
+[ /login ]
+  Komponent: Login
+  Działanie: Ekran logowania admina. Zapisuje accessToken i refreshToken z odpowiedzi.
+  API Backend: 
+    - POST /api/auth/login (LoginRequest)
+
+[ /setup ]
+  Komponent: Onboarding
+  Działanie: Aktywacja konta administratora z zaproszenia e-mail.
+  API Backend: 
+    - POST /api/auth/onboarding (OnboardingRequest: token, hasło)
+
+[ /forgot-password ]
+  Komponent: ForgotPassword
+  Działanie: Wysłanie linku resetującego hasło.
+  API Backend: 
+    - POST /api/auth/forgot-password (ForgotPasswordRequest: email)
+
+[ /reset-password ]
+  Komponent: ResetPassword
+  Działanie: Ustawienie nowego hasła po wejściu z linku.
+  API Backend: 
+    - POST /api/auth/reset-password (ResetPasswordRequest: token, nowe hasło)
+
+[ /verify-email ]
+  Komponent: VerifyEmail
+  Działanie: Potwierdzenie zmiany adresu e-mail z poziomu wysłanego linku.
+  API Backend: 
+    - POST /api/auth/onboarding/verify-email (VerifyEmailRequest: token)
+
+[ Niewidoczne w UI - Logika Axios Interceptor ]
+  API Backend:
+    - POST /api/auth/refresh (RefreshTokenRequest: refreshToken) -> Odświeża wygasły token
+    - POST /api/auth/logout (RefreshTokenRequest: refreshToken) -> Niszczy sesję
+
+5. WIDOK ADMINISTRATORA (AdminLayout)
+--------------------------------------------------------------------------------
+[ /admin/menu ] 
+  Komponent: AdminMenuManager
+  Działanie: Tabela pozycji menu (shadcn/ui). Możliwość dodawania (Modal), edycji i usuwania.
+  API Backend:
+    - GET /api/public/menu (Pobranie pełnej listy)
+    - POST /api/admin/menu (MenuItemRequest: name, desc, price, imageUrl, category)
+    - PUT /api/admin/menu/{id} (Edycja dania)
+    - DELETE /api/admin/menu/{id} (Usunięcie dania)
+
+[ /admin/rezerwacje ]
+  Komponent: AdminReservations
+  Działanie: Widok kalendarza/tabeli z rezerwacjami.
+  API Backend: BRAK (Czeka na implementację).
+
+[ /admin/formularz ]
+  Komponent: AdminMessages
+  Działanie: Skrzynka wiadomości z formularza kontaktowego.
+  API Backend: BRAK (Czeka na implementację).
+
+[ /admin/konto ]
+  Komponent: AdminProfileSettings
+  Działanie: Zarządzanie bezpieczeństwem własnego konta.
+  API Backend:
+    - PUT /api/profile/password (ChangePasswordRequest: oldPassword, newPassword)
+    - POST /api/profile/email/request-change (ChangeEmailRequest: newEmail)
+
+[ /admin/users ] *** TYLKO DLA ROLI: MASTER_USER ***
+  Komponent: AdminUserManager
+  Działanie: Widok dla głównego administratora do zarządzania personelem (super-adminami).
+  API Backend:
+    - GET /api/admin/users?page=0&size=10 (Lista kont)
+    - POST /api/admin/users/invite (InviteUserRequest: email)
+    - DELETE /api/admin/users/{id} (Miękkie usuwanie konta - soft delete)
+
+
+================================================================================
+STRUKTURA FOLDERÓW W /frontend/src
+================================================================================
+/assets         - pliki statyczne (logo, fonty)
+/components     - globalne UI (Button, Input, Navbar, Sidebar - głównie z shadcn/ui)
+/contexts       - AuthProvider (zapis tokenów, dekodowanie roli JWT)
+/hooks          - customowe hooki (np. useAuth, useAxiosPrivate z interceptorami)
+/layouts        - PublicLayout, AuthLayout, AdminLayout
+/pages          
+  /public       - strony otwarte (np. HomePage, MenuPage)
+  /admin        - strony chronione (np. AdminMenu, AdminUsers)
+  /auth         - ekrany autoryzacyjne (np. LoginPage, ResetPasswordPage)
+/services       - instancja Axiosa i pliki API (np. menuService.ts, authService.ts)
+/types          - definicje interfejsów DTO w TypeScript (MenuItemResponse, UserResponse itp.)
+/lib            - pliki pomocnicze (np. utils.ts od shadcn, schematy Zod)
