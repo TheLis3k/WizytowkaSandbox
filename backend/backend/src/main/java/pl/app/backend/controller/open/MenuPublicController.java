@@ -3,7 +3,7 @@ package pl.app.backend.controller.open;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.app.backend.dto.MenuItemResponse;
+import pl.app.backend.dto.menu.MenuItemResponse;
 import pl.app.backend.service.interfaces.IMenuItemService;
 
 import java.util.List;

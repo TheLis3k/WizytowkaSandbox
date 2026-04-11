@@ -1,7 +1,7 @@
 package pl.app.backend.service.interfaces;
 
-import pl.app.backend.dto.AuthResponse;
-import pl.app.backend.dto.LoginRequest;
+import pl.app.backend.dto.auth.AuthResponse;
+import pl.app.backend.dto.auth.LoginRequest;
 
 public interface IAuthService {
     AuthResponse authenticate(LoginRequest request);

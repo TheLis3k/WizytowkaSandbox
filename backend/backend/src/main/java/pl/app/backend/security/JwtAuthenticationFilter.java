@@ -14,7 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pl.app.backend.dto.ErrorResponse;
+import pl.app.backend.dto.common.ErrorResponse;
 import pl.app.backend.service.interfaces.IJwtService;
 import tools.jackson.databind.ObjectMapper;
 

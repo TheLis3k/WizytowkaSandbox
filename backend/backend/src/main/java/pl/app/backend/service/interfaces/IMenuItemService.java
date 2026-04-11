@@ -1,7 +1,7 @@
 package pl.app.backend.service.interfaces;
 
-import pl.app.backend.dto.MenuItemRequest;
-import pl.app.backend.dto.MenuItemResponse;
+import pl.app.backend.dto.menu.MenuItemRequest;
+import pl.app.backend.dto.menu.MenuItemResponse;
 
 import java.util.List;
 

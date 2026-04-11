@@ -10,8 +10,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.app.backend.dto.AuthResponse;
-import pl.app.backend.dto.LoginRequest;
+import pl.app.backend.dto.auth.AuthResponse;
+import pl.app.backend.dto.auth.LoginRequest;
 import pl.app.backend.entity.User;
 import pl.app.backend.entity.VerificationToken;
 import pl.app.backend.enums.VerificationTokenType;

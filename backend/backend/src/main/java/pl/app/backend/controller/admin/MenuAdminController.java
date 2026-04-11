@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.app.backend.dto.MenuItemRequest;
-import pl.app.backend.dto.MenuItemResponse;
+import pl.app.backend.dto.menu.MenuItemRequest;
+import pl.app.backend.dto.menu.MenuItemResponse;
 import pl.app.backend.service.interfaces.IMenuItemService;
 
 @RestController

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.app.backend.dto.OnboardingRequest;
-import pl.app.backend.dto.VerifyEmailRequest;
+import pl.app.backend.dto.user.OnboardingRequest;
+import pl.app.backend.dto.auth.VerifyEmailRequest;
 import pl.app.backend.service.interfaces.IOnboardingService;
 
 import java.util.Map;

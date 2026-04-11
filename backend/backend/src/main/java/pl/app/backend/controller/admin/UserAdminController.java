@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.app.backend.dto.InviteUserRequest;
+import pl.app.backend.dto.user.InviteUserRequest;
 import pl.app.backend.service.interfaces.IUserManagementService;
 
 import java.util.Map;
