@@ -1,17 +1,17 @@
-package pl.app.backend.dto;
+package pl.app.backend.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class OnboardingRequest {
+public class ChangePasswordRequest {
 
-    @NotBlank(message = "Token jest wymagany")
-    private String token;
+    @NotBlank(message = "Obecne hasło jest wymagane")
+    private String oldPassword;
 
-    @NotBlank(message = "Hasło jest wymagane")
+    @NotBlank(message = "Nowe hasło jest wymagane")
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$",
             message = "Hasło musi mieć min. 8 znaków, zawierać cyfrę, małą i dużą literę oraz znak specjalny")
-    private String password;
+    private String newPassword;
 }

@@ -1,4 +1,4 @@
-package pl.app.backend.dto;
+package pl.app.backend.dto.menu;
 
 import lombok.Builder;
 import lombok.Data;

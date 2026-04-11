@@ -5,16 +5,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.app.backend.dto.MenuItemRequest;
-import pl.app.backend.dto.MenuItemResponse;
-import pl.app.backend.service.MenuItemService;
+import pl.app.backend.dto.menu.MenuItemRequest;
+import pl.app.backend.dto.menu.MenuItemResponse;
+import pl.app.backend.service.interfaces.IMenuItemService;
 
 @RestController
 @RequestMapping("/api/admin/menu")
 @RequiredArgsConstructor
 public class MenuAdminController {
 
-    private final MenuItemService menuItemService;
+    private final IMenuItemService menuItemService;
 
     @PostMapping
     public ResponseEntity<MenuItemResponse> addMenuItem(@Valid @RequestBody MenuItemRequest request) {

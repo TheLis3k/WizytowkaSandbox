@@ -1,4 +1,4 @@
-package pl.app.backend.dto;
+package pl.app.backend.dto.menu;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;

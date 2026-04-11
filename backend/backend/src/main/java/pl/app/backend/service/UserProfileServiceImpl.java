@@ -12,6 +12,7 @@ import pl.app.backend.repository.UserRepository;
 import pl.app.backend.repository.VerificationTokenRepository;
 import pl.app.backend.security.TokenHasher;
 import pl.app.backend.service.interfaces.IEmailService;
+import pl.app.backend.service.interfaces.IRefreshTokenService;
 import pl.app.backend.service.interfaces.IUserProfileService;
 
 import java.time.Instant;
@@ -25,7 +26,7 @@ public class UserProfileServiceImpl implements IUserProfileService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenService refreshTokenService;
+    private final IRefreshTokenService refreshTokenService;
     private final VerificationTokenRepository tokenRepository;
     private final TokenHasher tokenHasher;
     private final IEmailService emailService;

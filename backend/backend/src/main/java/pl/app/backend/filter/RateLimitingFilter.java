@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pl.app.backend.dto.ErrorResponse;
+import pl.app.backend.dto.common.ErrorResponse;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;

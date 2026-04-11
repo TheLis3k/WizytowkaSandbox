@@ -4,9 +4,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.app.backend.dto.*;
-import pl.app.backend.service.AuthService;
-
+import pl.app.backend.dto.auth.AuthResponse;
+import pl.app.backend.dto.auth.ForgotPasswordRequest;
+import pl.app.backend.dto.auth.LoginRequest;
+import pl.app.backend.dto.auth.RefreshTokenRequest;
+import pl.app.backend.dto.auth.ResetPasswordRequest;
+import pl.app.backend.service.interfaces.IAuthService;
 import java.util.Map;
 
 @RestController
@@ -14,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final IAuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody LoginRequest request) {

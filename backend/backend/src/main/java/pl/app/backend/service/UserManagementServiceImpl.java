@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.app.backend.dto.UserResponse;
+import pl.app.backend.dto.user.UserResponse;
 import pl.app.backend.entity.User;
 import pl.app.backend.entity.VerificationToken;
 import pl.app.backend.enums.Role;

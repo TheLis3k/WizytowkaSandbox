@@ -14,8 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pl.app.backend.dto.ErrorResponse;
-import pl.app.backend.service.JwtService;
+import pl.app.backend.dto.common.ErrorResponse;
+import pl.app.backend.service.interfaces.IJwtService;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final IJwtService jwtService;
     private final UserDetailsService userDetailsService;
     private final ObjectMapper objectMapper;
 

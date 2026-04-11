@@ -1,6 +1,6 @@
 package pl.app.backend.service.interfaces;
 
-import pl.app.backend.dto.UserResponse;
+import pl.app.backend.dto.user.UserResponse;
 import pl.app.backend.entity.User;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package pl.app.backend.dto;
+package pl.app.backend.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

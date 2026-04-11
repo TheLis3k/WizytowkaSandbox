@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pl.app.backend.dto.ChangeEmailRequest;
-import pl.app.backend.dto.ChangePasswordRequest;
+import pl.app.backend.dto.user.ChangeEmailRequest;
+import pl.app.backend.dto.user.ChangePasswordRequest;
 import pl.app.backend.security.UserPrincipal;
 import pl.app.backend.service.interfaces.IUserProfileService;
 
