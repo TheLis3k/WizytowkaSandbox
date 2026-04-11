@@ -1,8 +1,10 @@
 package pl.app.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import pl.app.backend.dto.MenuItemRequest;
 import pl.app.backend.dto.MenuItemResponse;
 import pl.app.backend.entity.MenuItem;
@@ -36,11 +38,10 @@ public class MenuItemService {
         return toResponse(menuItemRepository.save(entity));
     }
 
-    // TODO: Not existing menu item returns 500
     @Transactional
     public MenuItemResponse updateMenuItem(Long id, MenuItemRequest request) {
         MenuItem item = menuItemRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Danie o podanym ID (" + id + ") nie istnieje."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Danie o podanym ID nie istnieje."));
 
         item.setName(inputSanitizer.sanitize(request.getName()));
         item.setDescription(inputSanitizer.sanitize(request.getDescription()));

@@ -59,7 +59,6 @@ public class OnboardingServiceImpl implements IOnboardingService {
         log.info("Użytkownik {} pomyślnie ukończył onboarding i aktywował konto.", user.getEmail());
     }
 
-    // TODO: Config email SMPT
     @Override
     @Transactional
     public void verifyNewEmail(String plainToken) {

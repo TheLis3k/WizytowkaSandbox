@@ -8,6 +8,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import pl.app.backend.dto.ErrorResponse;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+        log.warn("Zgłoszono błąd HTTP {}: {}", ex.getStatusCode().value(), ex.getReason());
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return buildErrorResponse(status, ex.getReason());
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
@@ -42,6 +50,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAllUncaughtException(Exception ex) {
         log.error("Krytyczny błąd serwera (500): ", ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Wystąpił nieoczekiwany błąd serwera. Spróbuj ponownie później.");
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Błąd biznesowy / zły argument: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message) {
