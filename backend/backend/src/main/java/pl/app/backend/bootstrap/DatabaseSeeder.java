@@ -20,7 +20,7 @@ import pl.app.backend.service.interfaces.IUserManagementService;
 public class DatabaseSeeder {
 
     private final UserRepository userRepository;
-    private final IUserManagementService userManagementService; // Korzystamy z serwisu
+    private final IUserManagementService userManagementService;
 
     @Value("${app.setup.admin.email}")
     private String adminEmail;
