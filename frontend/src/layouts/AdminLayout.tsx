@@ -1,5 +1,9 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function AdminLayout() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
@@ -11,54 +15,61 @@ export default function AdminLayout() {
     navigate('/auth/login');
   };
 
-  const isActive = (path: string) => location.pathname.includes(path);
+  const menuItems = [
+    { name: 'Menu', path: '/admin/menu', icon: Utensils },
+    { name: 'Rezerwacje', path: '/admin/rezerwacje', icon: Calendar },
+    { name: 'Wiadomości', path: '/admin/formularz', icon: MessageSquare },
+    { name: 'Ustawienia', path: '/admin/konto', icon: Settings },
+  ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6 text-2xl font-bold border-b border-gray-800 text-center">
-          Wizytówka<span className="text-blue-500">PRO</span>
+    <div className="flex h-screen bg-muted/30">
+      {/* Sidebar */}
+      <aside className="w-64 border-r bg-card flex flex-col">
+        <div className="p-6">
+          <Link to="/admin" className="flex items-center gap-2 font-bold text-xl tracking-tighter">
+            <LayoutDashboard className="w-6 h-6 text-primary" />
+            <span>Panel Admina</span>
+          </Link>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2 mt-4">
-          <Link 
-            to="/admin/menu" 
-            className={`block px-4 py-3 rounded-lg transition-colors ${isActive('/admin/menu') ? 'bg-blue-600' : 'hover:bg-gray-800'}`}
-          >
-            Zarządzanie Menu
-          </Link>
-          <Link 
-            to="/admin/rezerwacje" 
-            className={`block px-4 py-3 rounded-lg transition-colors ${isActive('/admin/rezerwacje') ? 'bg-blue-600' : 'hover:bg-gray-800'}`}
-          >
-            Rezerwacje
-          </Link>
-          <Link 
-            to="/admin/formularz" 
-            className={`block px-4 py-3 rounded-lg transition-colors ${isActive('/admin/formularz') ? 'bg-blue-600' : 'hover:bg-gray-800'}`}
-          >
-            Wiadomości
-          </Link>
-          <Link 
-            to="/admin/konto" 
-            className={`block px-4 py-3 rounded-lg transition-colors ${isActive('/admin/konto') ? 'bg-blue-600' : 'hover:bg-gray-800'}`}
-          >
-            Ustawienia Konta
-          </Link>
+        <nav className="flex-1 px-4 space-y-1">
+          {menuItems.map((item) => (
+            <Button
+              key={item.path}
+              variant={location.pathname.includes(item.path) ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start gap-3",
+                location.pathname.includes(item.path) && "font-semibold"
+              )}
+              asChild
+            >
+              <Link to={item.path}>
+                <item.icon className="w-4 h-4" />
+                {item.name}
+              </Link>
+            </Button>
+          ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
-          <button 
-            onClick={handleLogout} 
-            className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-colors font-semibold"
+        <div className="p-4 mt-auto">
+          <Separator className="mb-4" />
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={handleLogout}
           >
+            <LogOut className="w-4 h-4" />
             Wyloguj się
-          </button>
+          </Button>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto">
-        <Outlet />
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-5xl mx-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

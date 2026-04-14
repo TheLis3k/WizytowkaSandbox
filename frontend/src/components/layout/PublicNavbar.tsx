@@ -1,31 +1,34 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export default function PublicNavbar() {
+  const location = useLocation();
+
+  const navLinks = [
+    { name: 'Menu', path: '/menu' },
+    { name: 'Rezerwacje', path: '/rezerwacje' },
+    { name: 'Kontakt', path: '/formularz' },
+  ];
+
   return (
-    <nav className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo / Nazwa */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="text-xl font-bold text-gray-800">
-              WizytowkaSandbox
-            </Link>
-          </div>
-          
-          {/* Linki nawigacyjne */}
-          <div className="flex space-x-8">
-            <Link to="/menu" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium">
-              Menu
-            </Link>
-            <Link to="/rezerwacje" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium">
-              Rezerwacje
-            </Link>
-            <Link to="/formularz" className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md font-medium">
-              Kontakt
-            </Link>
-          </div>
-        </div>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <Link to="/" className="text-xl font-bold tracking-tighter">
+          Wizytówka<span className="text-primary">.</span>
+        </Link>
+
+        <nav className="flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Button
+              key={link.path}
+              variant={location.pathname === link.path ? "secondary" : "ghost"}
+              asChild
+            >
+              <Link to={link.path}>{link.name}</Link>
+            </Button>
+          ))}
+        </nav>
       </div>
-    </nav>
+    </header>
   );
 }
