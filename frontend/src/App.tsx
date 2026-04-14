@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-// Zastąp te importy faktycznymi plikami w miarę ich tworzenia
 const PublicLayout = () => <div>Layout Publiczny</div>;
 const AuthLayout = () => <div>Layout Autoryzacji</div>;
 const AdminLayout = () => <div>Layout Administratora (Chroniony)</div>;
