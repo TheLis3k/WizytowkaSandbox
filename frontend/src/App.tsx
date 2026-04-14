@@ -1,33 +1,33 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-const PublicLayout = () => <div>Layout Publiczny</div>;
-const AuthLayout = () => <div>Layout Autoryzacji</div>;
-const AdminLayout = () => <div>Layout Administratora (Chroniony)</div>;
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import PublicLayout from './layouts/PublicLayout';
+import AuthLayout from './layouts/AuthLayout';
+import AdminLayout from './layouts/AdminLayout';
+import MenuPage from './pages/public/MenuPage';
+import LoginPage from './pages/auth/LoginPage';
+import RequireAuth from './components/auth/RequireAuth';
+import AdminMenuManager from './pages/admin/AdminMenuManager';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<div>Menu Główne</div>} />
-          <Route path="/rezerwacje" element={<div>Rezerwacje</div>} />
-          <Route path="/formularz" element={<div>Kontakt</div>} />
+        {/* Strefa otwarta */}
+        <Route path="/" element={<PublicLayout />}>
+          <Route index element={<Navigate to="/menu" replace />} />
+          <Route path="menu" element={<MenuPage />} />
         </Route>
 
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<div>Logowanie</div>} />
-          <Route path="/setup" element={<div>Aktywacja z e-maila</div>} />
-          <Route path="/forgot-password" element={<div>Przypomnij hasło</div>} />
-          <Route path="/reset-password" element={<div>Zmień hasło</div>} />
-          <Route path="/verify-email" element={<div>Weryfikacja e-mail</div>} />
+        {/* Strefa autoryzacji */}
+        <Route path="/auth" element={<AuthLayout />}>
+          <Route path="login" element={<LoginPage />} />
         </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="menu" element={<div>Zarządzanie Menu</div>} />
-          <Route path="rezerwacje" element={<div>Zarządzanie Rezerwacjami</div>} />
-          <Route path="formularz" element={<div>Skrzynka Wiadomości</div>} />
-          <Route path="konto" element={<div>Ustawienia Konta</div>} />
-          <Route path="users" element={<div>Zarządzanie Użytkownikami (Tylko MASTER_USER)</div>} />
+        {/* Strefa chroniona (Admin) - owinięta w RequireAuth */}
+        <Route element={<RequireAuth />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/menu" replace />} />
+            <Route path="menu" element={<AdminMenuManager />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
