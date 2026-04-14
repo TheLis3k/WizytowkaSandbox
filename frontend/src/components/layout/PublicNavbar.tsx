@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import DarkModeToggle from '@/components/layout/DarkModeToggle';
 
 export default function PublicNavbar() {
   const location = useLocation();
@@ -27,6 +28,7 @@ export default function PublicNavbar() {
               <Link to={link.path}>{link.name}</Link>
             </Button>
           ))}
+          <DarkModeToggle />
         </nav>
       </div>
     </header>

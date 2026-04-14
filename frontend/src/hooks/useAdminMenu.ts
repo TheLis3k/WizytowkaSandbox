@@ -10,14 +10,39 @@ export const useAdminMenu = () => {
     queryFn: menuService.getPublicMenu,
   });
 
-  // 2. Mutacja do usuwania
+  // 2. Mutacja do dodawania
+  const createMutation = useMutation({
+    mutationFn: menuService.createMenuItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminMenu'] });
+      queryClient.invalidateQueries({ queryKey: ['publicMenu'] });
+    },
+  });
+
+  // 3. Mutacja do edycji
+  const updateMutation = useMutation({
+    mutationFn: menuService.updateMenuItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminMenu'] });
+      queryClient.invalidateQueries({ queryKey: ['publicMenu'] });
+    },
+  });
+
+  // 4. Mutacja do usuwania
   const deleteMutation = useMutation({
     mutationFn: menuService.deleteMenuItem,
     onSuccess: () => {
-      // Automatycznie odśwież tabelę po usunięciu!
       queryClient.invalidateQueries({ queryKey: ['adminMenu'] });
-      // Odśwież też publiczne menu
-      queryClient.invalidateQueries({ queryKey: ['publicMenu'] }); 
+      queryClient.invalidateQueries({ queryKey: ['publicMenu'] });
+    },
+  });
+
+  // 5. Mutacja do usuwania wielu
+  const deleteManyMutation = useMutation({
+    mutationFn: menuService.deleteManyMenuItems,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminMenu'] });
+      queryClient.invalidateQueries({ queryKey: ['publicMenu'] });
     },
   });
 
@@ -25,7 +50,13 @@ export const useAdminMenu = () => {
     menuItems: menuQuery.data,
     isLoading: menuQuery.isLoading,
     isError: menuQuery.isError,
+    createMenuItem: createMutation.mutate,
+    isCreating: createMutation.isPending,
+    updateMenuItem: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
     deleteMenuItem: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
+    deleteManyMenuItems: deleteManyMutation.mutate,
+    isDeletingMany: deleteManyMutation.isPending,
   };
 };

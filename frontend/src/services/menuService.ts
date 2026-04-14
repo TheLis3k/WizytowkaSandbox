@@ -24,4 +24,9 @@ export const menuService = {
   deleteMenuItem: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/api/admin/menu/${id}`);
   },
+
+  // USUWANIE WIELU (Tylko Admin)
+  deleteManyMenuItems: async (ids: number[]): Promise<void> => {
+    await Promise.all(ids.map((id) => axiosInstance.delete(`/api/admin/menu/${id}`)));
+  },
 };

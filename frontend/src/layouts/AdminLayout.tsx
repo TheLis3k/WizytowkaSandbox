@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import DarkModeToggle from '@/components/layout/DarkModeToggle';
 
 export default function AdminLayout() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
@@ -54,7 +55,11 @@ export default function AdminLayout() {
 
         <div className="p-4 mt-auto">
           <Separator className="mb-4" />
-          <Button 
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-sm text-muted-foreground">Motyw</span>
+            <DarkModeToggle />
+          </div>
+          <Button
             variant="ghost" 
             className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={handleLogout}
