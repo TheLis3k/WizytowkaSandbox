@@ -6,10 +6,13 @@ import MenuPage from './pages/public/MenuPage';
 import LoginPage from './pages/auth/LoginPage';
 import RequireAuth from './components/auth/RequireAuth';
 import AdminMenuManager from './pages/admin/AdminMenuManager';
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" richColors />
+
       <Routes>
         {/* Strefa otwarta */}
         <Route path="/" element={<PublicLayout />}>

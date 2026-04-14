@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email('Nieprawidłowy adres e-mail'),
@@ -23,15 +24,18 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
-    try {
-      const response = await authService.login(data.email, data.password);
-      setAuth(response.accessToken, response.role);
-      navigate('/admin/menu');
-    } catch (error) {
-      alert('Błąd logowania. Sprawdź e-mail i hasło.');
-    }
-  };
+	const onSubmit = async (data: LoginFormValues) => {
+		try {
+			const response = await authService.login(data.email, data.password);
+			setAuth(response.accessToken, response.refreshToken, response.role);
+			toast.success("Zalogowano pomyślnie!");
+			navigate('/admin/menu');
+		} catch (error) {
+			toast.error("Błąd logowania", {
+				description: "Nieprawidłowy e-mail lub hasło. Spróbuj ponownie."
+			});		
+		}
+	};
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
