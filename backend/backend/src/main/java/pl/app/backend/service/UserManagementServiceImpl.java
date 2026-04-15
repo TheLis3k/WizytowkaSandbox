@@ -59,21 +59,35 @@ public class UserManagementServiceImpl implements IUserManagementService {
     @Override
     @Transactional
     public void inviteSuperUser(String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            log.warn("Próba wysłania zaproszenia na adres e-mail, który jest już w bazie: {}", email);
+        // Check if an active (non-deleted) user already exists
+        if (userRepository.findByEmailAndIsDeletedFalse(email).isPresent()) {
+            log.warn("Próba wysłania zaproszenia na adres e-mail, który jest już aktywny w bazie: {}", email);
             return;
         }
 
-        User newUser = User.builder()
-                .email(email)
-                .role(Role.SUPER_USER)
-                .isActive(false)
-                .emailVerified(false)
-                .build();
+        // Reactivate a previously deleted user or create a new one
+        User user = userRepository.findByEmail(email)
+                .map(existing -> {
+                    existing.setDeleted(false);
+                    existing.setActive(false);
+                    existing.setEmailVerified(false);
+                    existing.setPassword(null);
+                    existing.setFailedLoginAttempts(0);
+                    existing.setLockoutTime(null);
+                    log.info("Reaktywacja usuniętego konta dla adresu: {}", email);
+                    return userRepository.save(existing);
+                })
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .email(email)
+                            .role(Role.SUPER_USER)
+                            .isActive(false)
+                            .emailVerified(false)
+                            .build();
+                    return userRepository.save(newUser);
+                });
 
-        User savedUser = userRepository.save(newUser);
-
-        generateAndSendInvitation(savedUser);
+        generateAndSendInvitation(user);
 
         log.info("Wysłano zaproszenie (SUPER_USER) na adres: {}", email);
     }

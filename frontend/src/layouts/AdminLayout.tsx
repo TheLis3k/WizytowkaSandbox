@@ -2,26 +2,37 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import DarkModeToggle from '@/components/layout/DarkModeToggle';
 
 export default function AdminLayout() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const refreshToken = useAuthStore((state) => state.refreshToken);
+  const role = useAuthStore((state) => state.role);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (refreshToken) {
+      try {
+        const { authService } = await import('../services/authService');
+        await authService.logout(refreshToken);
+      } catch {
+        // ignore — clear local state regardless
+      }
+    }
     clearAuth();
     navigate('/auth/login');
   };
 
   const menuItems = [
-    { name: 'Menu', path: '/admin/menu', icon: Utensils },
-    { name: 'Rezerwacje', path: '/admin/rezerwacje', icon: Calendar },
-    { name: 'Wiadomości', path: '/admin/formularz', icon: MessageSquare },
-    { name: 'Ustawienia', path: '/admin/konto', icon: Settings },
-  ];
+    { name: 'Menu', path: '/admin/menu', icon: Utensils, roles: ['MASTER_USER', 'SUPER_USER'] },
+    { name: 'Użytkownicy', path: '/admin/users', icon: Users, roles: ['MASTER_USER'] },
+    { name: 'Rezerwacje', path: '/admin/rezerwacje', icon: Calendar, roles: ['MASTER_USER', 'SUPER_USER'] },
+    { name: 'Wiadomości', path: '/admin/formularz', icon: MessageSquare, roles: ['MASTER_USER', 'SUPER_USER'] },
+    { name: 'Ustawienia', path: '/admin/konto', icon: Settings, roles: ['MASTER_USER', 'SUPER_USER'] },
+  ].filter((item) => item.roles.includes(role ?? ''));
 
   return (
     <div className="flex h-screen bg-muted/30">
