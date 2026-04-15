@@ -1,4 +1,14 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+
+function TableItemImage({ src }: { src: string }) {
+  const [broken, setBroken] = useState(false);
+
+  const handleError = useCallback(() => setBroken(true), []);
+
+  if (broken) return <div className="h-10 w-10 rounded-md bg-muted" />;
+
+  return <img src={src} alt="" onError={handleError} className="h-10 w-10 rounded-md object-cover bg-muted" />;
+}
 import { useAdminMenu } from '../../hooks/useAdminMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -148,7 +158,11 @@ export default function AdminMenuManager() {
                   />
                 </TableCell>
                 <TableCell>
-                  <img src={item.imageUrl || ''} alt="" className="h-10 w-10 rounded-md object-cover bg-muted" />
+                  {item.imageUrl ? (
+                    <TableItemImage src={item.imageUrl} />
+                  ) : (
+                    <div className="h-10 w-10 rounded-md bg-muted" />
+                  )}
                 </TableCell>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell>
