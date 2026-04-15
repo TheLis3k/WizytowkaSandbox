@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -34,7 +35,8 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
-import { UserPlus, Trash2 } from 'lucide-react';
+import { UserPlus, Trash2, Users } from 'lucide-react';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
 import { toast } from 'sonner';
 import type { UserResponse } from '@/types/user';
 
@@ -130,8 +132,23 @@ export default function AdminUsersPage() {
         </DialogRoot>
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm">
-        <Table>
+      {users?.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Users />
+            </EmptyMedia>
+            <EmptyTitle>Brak użytkowników</EmptyTitle>
+            <EmptyDescription>Zaproś pierwszego użytkownika, aby nadać mu dostęp do panelu.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <button className="text-sm text-primary hover:underline" onClick={() => setInviteOpen(true)}>
+              + Zaproś użytkownika
+            </button>
+          </EmptyContent>
+        </Empty>
+      ) : (
+      <Table>
           <TableHeader>
             <TableRow>
               <TableHead>E-mail</TableHead>
@@ -192,8 +209,11 @@ export default function AdminUsersPage() {
               </TableRow>
             ))}
           </TableBody>
+          <TableCaption>
+            Łącznie {users?.length} {users?.length === 1 ? 'użytkownik' : 'użytkowników'}
+          </TableCaption>
         </Table>
-      </div>
+      )}
     </div>
   );
 }

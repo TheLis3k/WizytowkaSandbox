@@ -6,13 +6,15 @@ import { CheckboxInput } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, UtensilsCrossed } from "lucide-react";
 import MenuItemDialog from '@/components/admin/MenuItemDialog';
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty';
 import {
   AlertDialogRoot,
   AlertDialogTrigger,
@@ -95,8 +97,25 @@ export default function AdminMenuManager() {
         </div>
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm">
-        <Table>
+      {menuItems?.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <UtensilsCrossed />
+            </EmptyMedia>
+            <EmptyTitle>Brak pozycji w menu</EmptyTitle>
+            <EmptyDescription>Dodaj pierwszą pozycję, aby zaczać budować menu.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <MenuItemDialog
+              trigger={<button className="text-sm text-primary hover:underline">+ Dodaj pozycję</button>}
+              onSubmit={createMenuItem}
+              isPending={isCreating}
+            />
+          </EmptyContent>
+        </Empty>
+      ) : (
+      <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">
@@ -176,8 +195,11 @@ export default function AdminMenuManager() {
               </TableRow>
             ))}
           </TableBody>
+          <TableCaption>
+            Łącznie {menuItems?.length} {menuItems?.length === 1 ? 'pozycja' : 'pozycji'} w menu
+          </TableCaption>
         </Table>
-      </div>
+      )}
     </div>
   );
 }
