@@ -1,5 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { useTokenRefresh } from '../hooks/useTokenRefresh';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut, Users } from 'lucide-react';
@@ -12,6 +13,7 @@ export default function AdminLayout() {
   const role = useAuthStore((state) => state.role);
   const navigate = useNavigate();
   const location = useLocation();
+  useTokenRefresh();
 
   const handleLogout = async () => {
     if (refreshToken) {
