@@ -42,6 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/users/**").hasRole("MASTER_USER")
                         .requestMatchers("/api/admin/menu/**").hasAnyRole("MASTER_USER", "SUPER_USER")
+                        .requestMatchers("/api/admin/tables/**").hasAnyRole("MASTER_USER", "SUPER_USER")
+                        .requestMatchers("/api/admin/reservations/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/profile/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .anyRequest().authenticated()
                 )
@@ -56,7 +58,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
