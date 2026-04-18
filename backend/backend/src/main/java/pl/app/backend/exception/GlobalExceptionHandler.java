@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,6 +37,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleJwtException(JwtException ex) {
         log.warn("Odrzucono nieprawidłowy token JWT: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Nieprawidłowy lub wygasły token");
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMissingBody(HttpMessageNotReadableException ex) {
+        log.warn("Brak lub nieprawidłowe ciało żądania: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Ciało żądania jest wymagane i musi być poprawnym JSON-em");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

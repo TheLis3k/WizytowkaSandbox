@@ -78,6 +78,28 @@ public class EmailServiceImpl implements IEmailService {
         sendHtmlEmail(to, subject, htmlContent);
     }
 
+    @Async
+    @Override
+    public void sendReservationConfirmationEmail(String to, String guestName, String plainConfirmToken, String plainCancelToken) {
+        String subject = "Potwierdź swoją rezerwację";
+        String confirmLink = frontendUrl + "/confirm-reservation?token=" + plainConfirmToken;
+        String cancelLink = frontendUrl + "/cancel-reservation?token=" + plainCancelToken;
+
+        String htmlContent = String.format(
+                "<h3>Witaj, %s!</h3>" +
+                        "<p>Dziękujemy za złożenie rezerwacji. Aby ją potwierdzić, kliknij w poniższy link:</p>" +
+                        "<p><a href=\"%s\">Potwierdź rezerwację</a></p>" +
+                        "<p>Link potwierdzający jest ważny przez <strong>15 minut</strong>. Po tym czasie rezerwacja zostanie anulowana.</p>" +
+                        "<hr/>" +
+                        "<p>Jeśli chcesz anulować rezerwację, kliknij tutaj:</p>" +
+                        "<p><a href=\"%s\">Anuluj rezerwację</a></p>" +
+                        "<p>Jeśli to nie Ty składałeś rezerwację, zignoruj tę wiadomość.</p>",
+                guestName, confirmLink, cancelLink
+        );
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
+
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

@@ -4,4 +4,5 @@ public interface IEmailService {
     void sendInvitationEmail(String to, String plainToken);
     void sendEmailChangeVerification(String to, String plainToken);
     void sendPasswordResetEmail(String to, String plainToken);
+    void sendReservationConfirmationEmail(String to, String guestName, String plainConfirmToken, String plainCancelToken);
 }
