@@ -7,7 +7,7 @@ export default function PublicNavbar() {
 
   const navLinks = [
     { name: 'Menu', path: '/menu' },
-    { name: 'Rezerwacje', path: '/rezerwacje' },
+    { name: 'Rezerwacje', path: '/rezerwacja' },
     { name: 'Kontakt', path: '/formularz' },
   ];
 

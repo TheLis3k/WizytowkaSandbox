@@ -12,6 +12,11 @@ import RequireAuth from './components/auth/RequireAuth';
 import AdminMenuManager from './pages/admin/AdminMenuManager';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminAccountPage from './pages/admin/AdminAccountPage';
+import AdminTablesPage from './pages/admin/AdminTablesPage';
+import AdminReservationsPage from './pages/admin/AdminReservationsPage';
+import ReservationPage from './pages/public/ReservationPage';
+import ReservationConfirmPage from './pages/public/ReservationConfirmPage';
+import ReservationCancelPage from './pages/public/ReservationCancelPage';
 import { Toaster } from "@/components/ui/sonner";
 
 function App() {
@@ -24,7 +29,12 @@ function App() {
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<Navigate to="/menu" replace />} />
           <Route path="menu" element={<MenuPage />} />
+          <Route path="rezerwacja" element={<ReservationPage />} />
         </Route>
+
+        {/* Email token landing pages */}
+        <Route path="/confirm-reservation" element={<ReservationConfirmPage />} />
+        <Route path="/cancel-reservation" element={<ReservationCancelPage />} />
 
         {/* Strefa autoryzacji */}
         <Route path="/auth" element={<AuthLayout />}>
@@ -46,6 +56,8 @@ function App() {
             <Route index element={<Navigate to="/admin/menu" replace />} />
             <Route path="menu" element={<AdminMenuManager />} />
             <Route path="users" element={<AdminUsersPage />} />
+            <Route path="stoliki" element={<AdminTablesPage />} />
+            <Route path="rezerwacje" element={<AdminReservationsPage />} />
             <Route path="konto" element={<AdminAccountPage />} />
           </Route>
         </Route>
