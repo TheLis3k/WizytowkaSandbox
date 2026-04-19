@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useTokenRefresh } from '../hooks/useTokenRefresh';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut, Users } from 'lucide-react';
+import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut, Users, TableProperties } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import DarkModeToggle from '@/components/layout/DarkModeToggle';
 
@@ -31,6 +31,7 @@ export default function AdminLayout() {
   const menuItems = [
     { name: 'Menu', path: '/admin/menu', icon: Utensils, roles: ['MASTER_USER', 'SUPER_USER'] },
     { name: 'Użytkownicy', path: '/admin/users', icon: Users, roles: ['MASTER_USER'] },
+    { name: 'Stoliki', path: '/admin/stoliki', icon: TableProperties, roles: ['MASTER_USER', 'SUPER_USER'] },
     { name: 'Rezerwacje', path: '/admin/rezerwacje', icon: Calendar, roles: ['MASTER_USER', 'SUPER_USER'] },
     { name: 'Wiadomości', path: '/admin/formularz', icon: MessageSquare, roles: ['MASTER_USER', 'SUPER_USER'] },
     { name: 'Ustawienia', path: '/admin/konto', icon: Settings, roles: ['MASTER_USER', 'SUPER_USER'] },

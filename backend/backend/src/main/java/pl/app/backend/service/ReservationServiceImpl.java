@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pl.app.backend.dto.reservation.AdminReservationUpdateRequest;
 import pl.app.backend.dto.reservation.ReservationRequest;
 import pl.app.backend.dto.reservation.ReservationResponse;
+import pl.app.backend.dto.reservation.TimeSlotAvailabilityResponse;
 import pl.app.backend.entity.Reservation;
 import pl.app.backend.entity.RestaurantTable;
 import pl.app.backend.enums.ReservationStatus;
@@ -23,6 +24,11 @@ import pl.app.backend.service.interfaces.IEmailService;
 import pl.app.backend.service.interfaces.IReservationService;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -115,6 +121,43 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<TimeSlotAvailabilityResponse> getAvailability(LocalDate date, int partySize) {
+        List<RestaurantTable> qualifying = tableRepository.findByActiveTrue().stream()
+                .filter(t -> t.getCapacity() >= partySize)
+                .toList();
+
+        List<Reservation> dayReservations = reservationRepository.findActiveByDateRange(
+                date.atStartOfDay(),
+                date.plusDays(1).atStartOfDay(),
+                List.of(ReservationStatus.CONFIRMED, ReservationStatus.PENDING_CONFIRMATION)
+        );
+
+        List<TimeSlotAvailabilityResponse> slots = new ArrayList<>();
+        LocalTime current = LocalTime.of(10, 0);
+        LocalTime last = LocalTime.of(21, 30);
+
+        while (!current.isAfter(last)) {
+            LocalDateTime slotStart = date.atTime(current);
+            LocalDateTime slotEnd = slotStart.plusMinutes(90);
+
+            List<TimeSlotAvailabilityResponse.AvailableTable> freeTables = qualifying.stream()
+                    .filter(table -> dayReservations.stream()
+                            .filter(r -> r.getTable().getId().equals(table.getId()))
+                            .noneMatch(r -> r.getStartTime().isBefore(slotEnd)
+                                    && r.getStartTime().plusMinutes(r.getDurationMinutes()).isAfter(slotStart)))
+                    .map(t -> new TimeSlotAvailabilityResponse.AvailableTable(t.getId(), t.getName(), t.getCapacity()))
+                    .toList();
+
+            slots.add(new TimeSlotAvailabilityResponse(current.toString(), !freeTables.isEmpty(), freeTables));
+            current = current.plusMinutes(30);
+        }
+
+        return slots;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<ReservationResponse> getAllReservations(Pageable pageable) {
         return reservationRepository.findAll(pageable).map(this::toResponse);
     }
