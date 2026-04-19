@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { useTokenRefresh } from '../hooks/useTokenRefresh';
+import { ensureFreshToken } from '../services/axiosInstance';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { LayoutDashboard, Utensils, Calendar, MessageSquare, Settings, LogOut, Users, TableProperties } from 'lucide-react';
@@ -13,7 +14,23 @@ export default function AdminLayout() {
   const role = useAuthStore((state) => state.role);
   const navigate = useNavigate();
   const location = useLocation();
-  useTokenRefresh();
+
+  // Proactively refresh the access token when the user returns to the tab
+  // after a long absence. ensureFreshToken is a no-op if the token is still
+  // fresh; it deduplicates with any concurrent API calls via a shared promise.
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        await ensureFreshToken();
+      } catch {
+        navigate('/auth/login', { replace: true });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [navigate]);
 
   const handleLogout = async () => {
     if (refreshToken) {
