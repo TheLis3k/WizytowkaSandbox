@@ -100,6 +100,44 @@ public class EmailServiceImpl implements IEmailService {
         sendHtmlEmail(to, subject, htmlContent);
     }
 
+    @Async
+    @Override
+    public void sendContactVerificationEmail(String to, String name, String plainToken) {
+        String subject = "Potwierdź swoją wiadomość";
+        String link = frontendUrl + "/contact/verify?token=" + plainToken;
+
+        String htmlContent = String.format(
+                "<h3>Witaj, %s!</h3>" +
+                        "<p>Dziękujemy za kontakt. Aby Twoja wiadomość dotarła do nas, potwierdź swój adres e-mail:</p>" +
+                        "<p><a href=\"%s\">Potwierdź wiadomość</a></p>" +
+                        "<p>Link jest ważny przez <strong>24 godziny</strong>.</p>" +
+                        "<p>Jeśli to nie Ty wysłałeś formularz, zignoruj tę wiadomość.</p>",
+                name, link
+        );
+
+        sendHtmlEmail(to, subject, htmlContent);
+    }
+
+    @Async
+    @Override
+    public void sendContactReplyEmail(String to, String name, String subject, String originalMessage, String reply) {
+        String emailSubject = "Odpowiedź na Twoją wiadomość: " + subject;
+
+        String htmlContent = String.format(
+                "<h3>Witaj, %s!</h3>" +
+                        "<p>Odpowiedzieliśmy na Twoją wiadomość:</p>" +
+                        "<blockquote style=\"border-left: 3px solid #ccc; padding-left: 12px; color: #555;\">%s</blockquote>" +
+                        "<hr/>" +
+                        "<h4>Nasza odpowiedź:</h4>" +
+                        "<p>%s</p>",
+                name,
+                originalMessage.replace("\n", "<br/>"),
+                reply.replace("\n", "<br/>")
+        );
+
+        sendHtmlEmail(to, emailSubject, htmlContent);
+    }
+
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

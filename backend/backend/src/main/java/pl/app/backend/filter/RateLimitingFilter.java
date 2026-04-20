@@ -34,6 +34,11 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String ip = extractClientIp(request);
         String pattern = resolvePattern(request.getRequestURI());
         String bucketKey = ip + ":" + pattern;
