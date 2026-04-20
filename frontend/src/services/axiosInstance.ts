@@ -98,6 +98,21 @@ axiosInstance.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 400 || error.response?.status === 422) {
+      const msg = error.response?.data?.message;
+      toast.error('Nieprawidłowe dane', { description: msg || 'Sprawdź poprawność wypełnionego formularza.' });
+    }
+
+    if (error.response?.status === 409) {
+      const msg = error.response?.data?.message;
+      toast.error('Konflikt', { description: msg || 'Operacja nie może zostać wykonana.' });
+    }
+
+    if (error.response?.status === 429) {
+      const msg = error.response?.data?.message;
+      toast.error('Zbyt wiele żądań', { description: msg || 'Spróbuj ponownie za chwilę.' });
+    }
+
     if (error.response?.status >= 500) {
       toast.error('Błąd serwera', { description: 'Wystąpił problem po stronie serwera. Spróbuj ponownie później.' });
     }

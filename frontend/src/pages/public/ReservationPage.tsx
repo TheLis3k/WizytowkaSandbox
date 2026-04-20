@@ -3,15 +3,21 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { pl } from 'date-fns/locale';
 import { reservationService } from '@/services/reservationService';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CalendarDays, Users, Clock, ArrowLeft, Check, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TimeSlotAvailability, AvailableTable } from '@/types/reservation';
 
-const today = new Date().toISOString().split('T')[0];
+const todayDate = new Date();
+todayDate.setHours(0, 0, 0, 0);
+const today = todayDate.toISOString().split('T')[0];
 
 const fmtDate = (iso: string) =>
   new Date(iso + 'T12:00:00').toLocaleDateString('pl-PL', {
@@ -35,9 +41,8 @@ const bookingSchema = z.object({
     .refine((v) => /^\+?[\d\s\-(). ]{7,20}$/.test(v), 'Podaj poprawny numer telefonu'),
   guestEmail: z
     .string()
-    .email('Podaj poprawny adres e-mail')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'Adres e-mail jest wymagany')
+    .email('Podaj poprawny adres e-mail'),
   comments: z.string().max(1000).optional(),
   tableId: z.coerce.number().min(1),
 });
@@ -124,8 +129,14 @@ function BackBtn({ label, onClick }: { label: string; onClick: () => void }) {
 
 // ── Step 1: Date & Guests ─────────────────────────────────────────────────────
 function StepSearch({ onSearch }: { onSearch: (date: string, guests: number) => void }) {
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState<Date | undefined>(todayDate);
   const [guests, setGuests] = useState(2);
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (d: Date | undefined) => {
+    setDate(d);
+    setOpen(false);
+  };
 
   return (
     <div className="bg-card border border-border rounded-2xl p-7 space-y-5">
@@ -137,13 +148,27 @@ function StepSearch({ onSearch }: { onSearch: (date: string, guests: number) => 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Data</Label>
-          <Input
-            type="date"
-            min={today}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            style={{ colorScheme: 'dark' }}
-          />
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                data-empty={!date}
+                className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+              >
+                <CalendarDays className="size-4 text-green-400" />
+                {date ? format(date, 'd MMMM yyyy', { locale: pl }) : 'Wybierz datę'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleSelect}
+                disabled={{ before: todayDate }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Liczba gości</Label>
@@ -161,7 +186,11 @@ function StepSearch({ onSearch }: { onSearch: (date: string, guests: number) => 
         </div>
       </div>
 
-      <Button className="w-full" onClick={() => onSearch(date, guests)} disabled={!date}>
+      <Button
+        className="w-full"
+        onClick={() => date && onSearch(format(date, 'yyyy-MM-dd'), guests)}
+        disabled={!date}
+      >
         Sprawdź dostępność
       </Button>
     </div>
@@ -186,7 +215,12 @@ function StepSlots({
   onBack: () => void;
   onSelect: (slot: TimeSlotAvailability) => void;
 }) {
-  const [focusHour, setFocusHour] = useState('13:00');
+  const [focusHour, setFocusHour] = useState(() => {
+    if (date !== today) return '13:00';
+    const h = new Date().getHours() + 1;
+    const clamped = Math.min(Math.max(h, 10), 20);
+    return `${String(clamped).padStart(2, '0')}:00`;
+  });
   const [selected, setSelected] = useState<string | null>(null);
 
   const visibleSlots = useMemo(() => {
@@ -254,9 +288,12 @@ function StepSlots({
             ) : (
               visibleSlots.map((slot) => {
                 const isSelected = selected === slot.time;
-                const isUnavail = !slot.available;
+                const [sh, sm] = slot.time.split(':').map(Number);
+                const now = new Date();
+                const isPast = date === today && sh * 60 + sm <= now.getHours() * 60 + now.getMinutes();
+                const isUnavail = !slot.available || isPast;
                 const tableCount = slot.tables?.length ?? 0;
-                const isLow = slot.available && tableCount === 1;
+                const isLow = slot.available && !isPast && tableCount === 1;
 
                 return (
                   <div
@@ -276,7 +313,9 @@ function StepSlots({
                         isUnavail ? 'text-destructive' : isLow ? 'text-yellow-400' : 'text-green-400',
                       )}
                     >
-                      {isUnavail
+                      {isPast
+                        ? 'Miniony'
+                        : isUnavail
                         ? 'Niedostępne'
                         : isLow
                         ? 'Ostatni stolik'
@@ -375,7 +414,7 @@ function StepForm({
               {errors.guestPhone && <p className="text-xs text-destructive">{errors.guestPhone.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">E-mail (opcjonalnie)</Label>
+              <Label className="text-xs text-muted-foreground">E-mail *</Label>
               <Input type="email" placeholder="jan@example.com" {...register('guestEmail')} aria-invalid={!!errors.guestEmail} />
               {errors.guestEmail && <p className="text-xs text-destructive">{errors.guestEmail.message}</p>}
             </div>
@@ -507,7 +546,6 @@ export default function ReservationPage() {
     setConfirmedForm(values);
     createMutation.mutate({
       ...values,
-      guestEmail: values.guestEmail || '',
       partySize,
       startTime: `${selectedDate}T${selectedSlot.time}:00`,
     });
