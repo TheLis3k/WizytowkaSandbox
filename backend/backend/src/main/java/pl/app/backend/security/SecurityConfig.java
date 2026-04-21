@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/tables/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/admin/reservations/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/admin/contact/**").hasAnyRole("MASTER_USER", "SUPER_USER")
+                        .requestMatchers("/api/admin/categories/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/profile/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .anyRequest().authenticated()
                 )
