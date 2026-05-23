@@ -1,3 +1,9 @@
+export interface CategoryResponse {
+  id: number;
+  name: string;
+  sortOrder: number;
+}
+
 export interface MenuItemResponse {
   id: number;
   name: string;

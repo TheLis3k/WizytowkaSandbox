@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import type { MenuItemRequest, MenuItemResponse } from '@/types/menu';
 
 const schema = z.object({
@@ -29,12 +30,13 @@ type FormValues = z.input<typeof schema>;
 interface MenuItemDialogProps {
   trigger: React.ReactNode;
   item?: MenuItemResponse;
-  onSubmit: (data: MenuItemRequest) => void;
-  isPending?: boolean;
+  categories?: string[];
+  onSubmit: (data: MenuItemRequest) => Promise<unknown>;
 }
 
-export default function MenuItemDialog({ trigger, item, onSubmit, isPending }: MenuItemDialogProps) {
+export default function MenuItemDialog({ trigger, item, categories, onSubmit }: MenuItemDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -56,6 +58,13 @@ export default function MenuItemDialog({ trigger, item, onSubmit, isPending }: M
     );
   }, [item, reset]);
 
+  const hasCategories = categories && categories.length > 0;
+  const categoryOptions = hasCategories
+    ? item?.category && !categories.includes(item.category)
+      ? [...categories, item.category]
+      : categories
+    : [];
+
   return (
     <DialogRoot open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -67,7 +76,16 @@ export default function MenuItemDialog({ trigger, item, onSubmit, isPending }: M
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit((values) => { onSubmit(values as unknown as MenuItemRequest); setOpen(false); })} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(async (values) => {
+            setIsSubmitting(true);
+            try {
+              await onSubmit(values as unknown as MenuItemRequest);
+              reset();
+              setOpen(false);
+            } finally {
+              setIsSubmitting(false);
+            }
+          })} className="space-y-4 pt-2">
           <div className="space-y-1">
             <Label htmlFor="name">Nazwa</Label>
             <Input id="name" {...register('name')} aria-invalid={!!errors.name} />
@@ -89,7 +107,21 @@ export default function MenuItemDialog({ trigger, item, onSubmit, isPending }: M
 
             <div className="space-y-1">
               <Label htmlFor="category">Kategoria</Label>
-              <Input id="category" {...register('category')} aria-invalid={!!errors.category} />
+              {hasCategories ? (
+                <select
+                  id="category"
+                  {...register('category')}
+                  aria-invalid={!!errors.category}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-2.5 py-1 text-sm outline-none cursor-pointer text-foreground focus-visible:border-ring dark:bg-card [&>option]:dark:bg-card [&>option]:dark:text-foreground"
+                >
+                  <option value="">Wybierz kategorię...</option>
+                  {categoryOptions.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              ) : (
+                <Input id="category" {...register('category')} aria-invalid={!!errors.category} />
+              )}
               {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
             </div>
           </div>
@@ -104,8 +136,10 @@ export default function MenuItemDialog({ trigger, item, onSubmit, isPending }: M
             <DialogClose asChild>
               <Button type="button" variant="outline">Anuluj</Button>
             </DialogClose>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Zapisywanie…' : item ? 'Zapisz zmiany' : 'Dodaj'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? <><Spinner className="size-4 mr-1.5" />{item ? 'Zapisywanie…' : 'Dodawanie…'}</>
+                : item ? 'Zapisz zmiany' : 'Dodaj'}
             </Button>
           </div>
         </form>

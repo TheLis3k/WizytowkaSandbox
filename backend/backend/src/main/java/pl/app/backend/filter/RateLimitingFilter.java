@@ -39,6 +39,16 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             return;
         }
 
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/v3/api-docs")
+                || uri.startsWith("/swagger-ui")
+                || uri.startsWith("/swagger-resources")
+                || uri.startsWith("/webjars")
+                || uri.equals("/swagger-ui.html")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String ip = extractClientIp(request);
         String pattern = resolvePattern(request.getRequestURI());
         String bucketKey = ip + ":" + pattern;

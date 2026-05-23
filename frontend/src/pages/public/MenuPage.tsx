@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useMenu } from '../../hooks/useMenu';
+import { useCategories } from '../../hooks/useCategories';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
@@ -204,6 +205,7 @@ function CategorySection({
 
 export default function MenuPage() {
   const { data: menuItems, isLoading, isError, error } = useMenu();
+  const { categories: orderedCategories } = useCategories();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortValue>('default');
   const [activeCat, setActiveCat] = useState('Wszystkie');
@@ -212,8 +214,12 @@ export default function MenuPage() {
 
   const categories = useMemo(() => {
     if (!menuItems) return [];
-    return ['Wszystkie', ...Array.from(new Set(menuItems.map((i) => i.category)))];
-  }, [menuItems]);
+    const itemCats = new Set(menuItems.map((i) => i.category));
+    // Use backend order, then append any categories from items not yet in the list
+    const ordered = orderedCategories.map((c) => c.name).filter((n) => itemCats.has(n));
+    const extra = [...itemCats].filter((n) => !ordered.includes(n));
+    return ['Wszystkie', ...ordered, ...extra];
+  }, [menuItems, orderedCategories]);
 
   const filtered = useMemo(() => {
     if (!menuItems) return [];
@@ -242,12 +248,16 @@ export default function MenuPage() {
       const label = activeCat === 'Wszystkie' ? null : activeCat;
       return label ? [{ cat: label, items: filtered }] : null;
     }
-    const cats = Array.from(new Set(menuItems?.map((i) => i.category) ?? []));
+    // Use backend-ordered categories, then append any unmanaged ones
+    const itemCats = new Set(menuItems?.map((i) => i.category) ?? []);
+    const ordered = orderedCategories.map((c) => c.name).filter((n) => itemCats.has(n));
+    const extra = [...itemCats].filter((n) => !ordered.includes(n));
+    const cats = [...ordered, ...extra];
     const sections = cats
       .map((cat) => ({ cat, items: filtered.filter((i) => i.category === cat) }))
       .filter((g) => g.items.length > 0);
     return sections.length > 0 ? sections : null;
-  }, [filtered, activeCat, sort, menuItems]);
+  }, [filtered, activeCat, sort, menuItems, orderedCategories]);
 
   if (isLoading) {
     return (
@@ -305,7 +315,7 @@ export default function MenuPage() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortValue)}
-          className="h-9 rounded-md border border-input bg-transparent px-2.5 py-1 text-sm outline-none cursor-pointer text-foreground focus-visible:border-ring dark:bg-input/30"
+          className="h-9 rounded-md border border-input bg-transparent px-2.5 py-1 text-sm outline-none cursor-pointer text-foreground focus-visible:border-ring dark:bg-card [&>option]:dark:bg-card [&>option]:dark:text-foreground"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

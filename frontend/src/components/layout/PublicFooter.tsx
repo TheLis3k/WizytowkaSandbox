@@ -24,7 +24,7 @@ export default function PublicFooter() {
         <ContextMenuRoot>
           <ContextMenuTrigger>
             <span className="text-xs text-muted-foreground select-none cursor-default">
-              shadcn/ui
+              TheLis3k
             </span>
           </ContextMenuTrigger>
           <ContextMenuContent>

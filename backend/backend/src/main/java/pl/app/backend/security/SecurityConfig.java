@@ -40,11 +40,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs", "/v3/api-docs/**",
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/swagger-resources/**", "/webjars/**"
+                        ).permitAll()
                         .requestMatchers("/api/admin/users/**").hasRole("MASTER_USER")
                         .requestMatchers("/api/admin/menu/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/admin/tables/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/admin/reservations/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/admin/contact/**").hasAnyRole("MASTER_USER", "SUPER_USER")
+                        .requestMatchers("/api/admin/categories/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .requestMatchers("/api/profile/**").hasAnyRole("MASTER_USER", "SUPER_USER")
                         .anyRequest().authenticated()
                 )
