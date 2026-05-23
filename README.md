@@ -1,88 +1,217 @@
-# PROJECT SPECIFICATION AND DOCUMENTATION
+# Restaurant Admin Platform
 
-## 1. PROJECT OVERVIEW
-This document outlines the architecture, directory structure, and technical decisions for a full-stack restaurant/service website. The application is organized as a monorepo, utilizing React for the frontend and Java/Spring Boot for the backend, supported by a PostgreSQL database and containerized via Docker.
+Full-stack restaurant management system: public reservation/menu site + role-based admin panel. Built as a portfolio piece to practice production patterns — JWT auth with rotating refresh tokens, invitation-based onboarding, hashed verification tokens, and a clean interface-first service layer.
 
-## 2. TECHNOLOGY STACK & RECOMMENDATIONS
-* **Frontend:** React (Bootstrapped with Vite for performance)
-* **Backend:** Java (17 or 21) with Spring Boot 3.x
-* **Database:** PostgreSQL
-* **Infrastructure:** Docker & Docker Compose
+**Stack:** React 18 · Vite · TypeScript · TanStack Query · Zustand · shadcn/ui · Spring Boot · Spring Security · JPA/Hibernate · PostgreSQL · Docker Compose
 
-### Hosting Recommendations (Cost-Free Tier)
-To achieve a $0/month deployment while supporting a Java backend and PostgreSQL, use the following combination:
-* **Frontend:** Vercel or Netlify. Both offer generous, perpetual free tiers for static React applications.
-* **Backend:** Render (Free Web Service) or Koyeb. Render supports Dockerized Spring Boot apps. Note: Free instances spin down after inactivity and take ~30 seconds to wake up.
-* **Database:** Neon.tech or Supabase. Both offer perpetual free-tier managed PostgreSQL databases that integrate perfectly with Spring Boot.
-
-### Security Implementation
-Since users do not log in, but admins do, security needs to be split between public safety and admin authentication:
-* **Admin Auth:** Spring Security with JWT (JSON Web Tokens). All `/api/admin/**` endpoints must be restricted.
-* **CORS Configuration:** Spring Boot must be configured to only accept requests from your specific frontend domain.
-* **Spam Prevention:** Implement Spring Boot rate limiting (e.g., Bucket4j) on the contact form and reservation endpoints to prevent abuse. Consider adding Google reCAPTCHA v3 on the frontend.
-* **Input Validation:** Use Spring Boot `spring-boot-starter-validation` (@NotNull, @Email, etc.) to sanitize all incoming data before it hits the database.
-* **Secrets Management:** Never hardcode passwords. Pass database URIs and email SMTP credentials to Docker via `.env` files.
+![Main view](docs/pictures/MainView.png)
 
 ---
 
-## 3. MONOREPO DIRECTORY STRUCTURE
+## Features
 
-```text
-/my-website-monorepo
-│
-├── /frontend                        # React Application
-│   ├── /src
-│   │   ├── /components              # UI components (Welcome, CTA, Menu)
-│   │   ├── /pages                   # Page layouts (Home, AdminDashboard)
-│   │   ├── /services                # Axios/Fetch API calls to backend
-│   │   └── App.js
-│   ├── package.json
-│   └── Dockerfile.frontend          
-│
-├── /backend                         # Spring Boot Application
-│   ├── /src/main/java/com/app
-│   │   ├── /config                  # CORS, Spring Security, Swagger
-│   │   ├── /controllers             # Public and Admin REST API endpoints
-│   │   ├── /models                  # JPA Entities (Reservation, Menu, Message)
-│   │   ├── /repositories            # Spring Data JPA interfaces
-│   │   └── /services                # Business logic, Email confirmation
-│   ├── pom.xml / build.gradle
-│   └── Dockerfile.backend           
-│
-├── .gitignore
-├── docker-compose.yml               # Local development orchestration
-└── README.md                        # Setup instructions
+**Public site**
+- Browse menu by category (ordered server-side)
+- Multi-step reservation flow with email confirmation + cancellation links
+- Contact form with email verification (anti-spam)
+
+**Admin panel**
+- Menu & category CRUD with drag-style ordering
+- Reservation management
+- Table management
+- Contact inbox with admin reply
+- User management with role-based access (MASTER_USER / SUPER_USER) and invitation flow
+
+**Auth & security**
+- JWT access tokens (15 min) + UUID refresh tokens, rotated on each use
+- All verification/refresh tokens stored **hashed**, never plaintext
+- Reactive 401 interceptor + proactive refresh 60s before expiry
+- Account lockout on repeated failed logins
+- Soft-delete with reactivation on re-invite
+
+---
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Login](docs/pictures/AccountActivation.png) | ![Menu admin](docs/pictures/MenuAdmin.png) |
+| Account activation via invitation link | Admin menu manager (CRUD + categories) |
+| ![Invite email](docs/pictures/InviteEmail.png) | ![Reservation](docs/pictures/ReservationStep2.png) |
+| Invitation email (HTML template) | Public reservation flow |
+| ![Reservation success](docs/pictures/ReservationSuccess.png) | ![Mobile menu](docs/pictures/MenuPhone.png) |
+| Reservation confirmation | Responsive public menu (mobile) |
+| ![Swagger](docs/pictures/SwaggerSS.png) | |
+| OpenAPI / Swagger docs | |
+
+---
+
+## Architecture
+
+```
+┌──────────────┐    HTTPS / JWT     ┌──────────────────┐    JDBC     ┌────────────┐
+│  React SPA   │ ◄─────────────────►│  Spring Boot API │ ◄──────────►│ PostgreSQL │
+│  (Vite)      │                    │  (Security+JPA)  │             └────────────┘
+└──────────────┘                    └────────┬─────────┘
+                                             │ SMTP
+                                             ▼
+                                    ┌──────────────────┐
+                                    │  Mail provider   │
+                                    └──────────────────┘
+```
+
+### Database (ER diagram)
+
+```mermaid
+erDiagram
+    USER ||--o{ REFRESH_TOKEN : "issues"
+    USER ||--o{ VERIFICATION_TOKEN : "owns"
+    RESTAURANT_TABLE ||--o{ RESERVATION : "booked for"
+
+    USER {
+        Long id PK
+        String email UK
+        String password
+        Role role
+        boolean isActive
+        boolean emailVerified
+        boolean isDeleted
+        int failedLoginAttempts
+        Instant lockoutTime
+    }
+
+    REFRESH_TOKEN {
+        Long id PK
+        String tokenHash UK
+        Instant expiryDate
+        boolean revoked
+        Long user_id FK
+    }
+
+    VERIFICATION_TOKEN {
+        Long id PK
+        String tokenHash UK
+        VerificationTokenType type
+        Instant expiryDate
+        String newEmailPayload
+        Long user_id FK
+    }
+
+    MENU_ITEM {
+        Long id PK
+        String name
+        String description
+        BigDecimal price
+        String imageUrl
+        String category
+    }
+
+    CATEGORY {
+        Long id PK
+        String name UK
+        int sortOrder
+    }
+
+    RESTAURANT_TABLE {
+        Long id PK
+        String name
+        int capacity
+        boolean active
+    }
+
+    RESERVATION {
+        Long id PK
+        Long table_id FK
+        String guestName
+        String guestEmail
+        String guestPhone
+        int partySize
+        LocalDateTime startTime
+        int durationMinutes
+        ReservationStatus status
+        String confirmationTokenHash
+        String cancellationTokenHash
+        Instant createdAt
+    }
+
+    CONTACT_MESSAGE {
+        Long id PK
+        String name
+        String email
+        String subject
+        String message
+        ContactMessageStatus status
+        String verificationTokenHash UK
+        String adminReply
+        Instant repliedAt
+        Instant createdAt
+    }
 ```
 
 ---
 
-## 4. FUNCTIONALITY & VIEWS
+## Engineering decisions
 
-### Public User View (No Authentication Required)
-* **Welcome Page & CTA:** Static or dynamic content introducing the service with a Call-To-Action.
-* **Menu View:** Fetches the current menu list from the backend (`GET /api/public/menu`).
-* **Contact Form:** Allows users to send messages (`POST /api/public/contact`).
-* **Reservation Calendar:**
-    1. User selects a date/time and submits details.
-    2. Backend saves reservation as `STATUS: PENDING` and generates a unique UUID token.
-    3. Backend sends an email (via Spring Boot JavaMailSender + free SMTP like Gmail or SendGrid) containing a confirmation link.
-    4. User clicks link -> frontend calls `GET /api/public/reservations/confirm?token=UUID`.
-    5. Backend updates reservation to `STATUS: CONFIRMED`.
+A few non-obvious tradeoffs worth calling out:
 
-### Admin View (Authentication Required)
-* **Login:** Admin enters credentials to receive a JWT.
-* **Menu Management:** CRUD operations to add, edit, or delete menu items (`POST/PUT/DELETE /api/admin/menu`).
-* **Reservation Management:** View calendar, approve, manually configure, or cancel user visits (`GET/PUT /api/admin/reservations`).
-* **Contact Submissions:** Inbox-style view to read messages submitted via the public contact form (`GET /api/admin/messages`).
+- **Interface-first services** (`service/interfaces/` + `*Impl`) — keeps controllers testable and lets implementations swap without touching call sites.
+- **Hashed tokens at rest** — refresh tokens, verification tokens, reservation confirmation/cancellation tokens all stored via `TokenHasher`. A DB leak doesn't hand over usable tokens.
+- **Refresh-token rotation** — each refresh issues a new token and revokes the old. Replay of a stolen token is single-use.
+- **Two-layer token refresh on the client** — `useTokenRefresh` schedules a refresh 60s before expiry; `axiosInstance` also reacts to 401s and retries. Belt + suspenders so a clock skew or missed timer doesn't log the user out.
+- **JWT carries the role, backend `AuthResponse` does not** — role is decoded from the `authorities` claim client-side, keeping the response minimal and the JWT self-contained.
+- **Soft-delete + reactivate on re-invite** — inviting an email that belongs to a soft-deleted user reactivates the account instead of erroring or creating a duplicate.
+- **Split controller packages** (`controller/open` vs `controller/admin` vs `controller/profile`) — security rules map cleanly to URL prefixes; no per-endpoint annotation drift.
+- **Account lockout** on `failedLoginAttempts` with `lockoutTime` — basic brute-force defense without external deps.
 
 ---
 
-## 5. DOCKER INTEGRATION (docker-compose.yml)
-For local development, your `docker-compose.yml` at the root of the monorepo should define three services:
+## Project structure
 
-1.  **db:** Uses the official `postgres:15-alpine` image. Exposes port `5432`.
-2.  **backend:** Builds `./backend/Dockerfile.backend`. Exposes port `8080`. Depends on `db`.
-3.  **frontend:** Builds `./frontend/Dockerfile.frontend`. Exposes port `3000` (or `5173` for Vite).
+```
+/frontend                     # React + Vite + TS
+  src/
+    components/{admin,auth,layout,ui}
+    pages/{admin,auth,public}
+    services/                 # axios + per-resource API clients
+    hooks/                    # TanStack Query hooks
+    stores/authStore.ts       # Zustand, persists to local/session storage
+    layouts/                  # AdminLayout, AuthLayout, PublicLayout
 
-To run the entire stack locally, a developer simply runs:
-`docker-compose up --build`
+/backend/backend              # Spring Boot
+  src/main/java/pl/app/backend/
+    controller/{open,admin,profile}
+    service/{interfaces,*Impl}
+    security/                 # JwtFilter, UserPrincipal, SecurityConfig
+    entity/                   # JPA entities
+    bootstrap/DatabaseSeeder.java
+```
+
+---
+
+## Quick start
+
+```bash
+# 1. Backend (needs Postgres on localhost:5432, db=restaurant_db)
+cd backend/backend
+cp .env.example .env          # fill in SMTP + JWT secret
+./mvnw spring-boot:run
+
+# 2. Frontend
+cd frontend
+npm install
+npm run dev                   # http://localhost:5173
+```
+
+Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+
+Or via Docker:
+
+```bash
+docker-compose up --build
+```
+
+---
+
+## License
+
+MIT — feel free to use as a learning reference.

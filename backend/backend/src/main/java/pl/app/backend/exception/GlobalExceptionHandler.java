@@ -5,10 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pl.app.backend.dto.ErrorResponse;
+import org.springframework.web.server.ResponseStatusException;
+import pl.app.backend.dto.common.ErrorResponse;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -16,6 +19,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
+        log.warn("Zgłoszono błąd HTTP {}: {}", ex.getStatusCode().value(), ex.getReason());
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return buildErrorResponse(status, ex.getReason());
+    }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
@@ -27,6 +37,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleJwtException(JwtException ex) {
         log.warn("Odrzucono nieprawidłowy token JWT: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Nieprawidłowy lub wygasły token");
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMissingBody(HttpMessageNotReadableException ex) {
+        log.warn("Brak lub nieprawidłowe ciało żądania: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Ciało żądania jest wymagane i musi być poprawnym JSON-em");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -42,6 +58,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAllUncaughtException(Exception ex) {
         log.error("Krytyczny błąd serwera (500): ", ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Wystąpił nieoczekiwany błąd serwera. Spróbuj ponownie później.");
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Błąd biznesowy / zły argument: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponse> handleLockedException(LockedException ex) {
+        log.warn("Próba zalogowania na zablokowane konto: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message) {

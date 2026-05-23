@@ -14,10 +14,11 @@ public class RateLimitConfig {
     private final Bandwidth defaultLimit;
 
     public RateLimitConfig() {
-        endpointLimits.put("/api/auth/login",   perMinute(5));
-        endpointLimits.put("/api/auth/refresh", perMinute(10));
-        endpointLimits.put("/api/auth",         perMinute(20));
-        endpointLimits.put("/api/public",       perMinute(60));
+        endpointLimits.put("/api/auth/login",          perMinute(5));
+        endpointLimits.put("/api/auth/refresh",        perMinute(10));
+        endpointLimits.put("/api/auth",                perMinute(20));
+        endpointLimits.put("/api/public/contact",      per(3, Duration.ofMinutes(10)));
+        endpointLimits.put("/api/public",              perMinute(60));
         endpointLimits.put("/api/admin",        perMinute(100));
         defaultLimit = perMinute(30);
     }
@@ -34,6 +35,13 @@ public class RateLimitConfig {
         return Bandwidth.builder()
                 .capacity(requests)
                 .refillIntervally(requests, Duration.ofMinutes(1))
+                .build();
+    }
+
+    private Bandwidth per(int requests, Duration duration) {
+        return Bandwidth.builder()
+                .capacity(requests)
+                .refillIntervally(requests, duration)
                 .build();
     }
 }
